@@ -1,0 +1,23 @@
+.header {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    background-color: #261367;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    z-index: 1000;
+}
+
+.left-header, .right-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    color: white;
+}
+
+.right-header{
+    gap: 20px;
+}

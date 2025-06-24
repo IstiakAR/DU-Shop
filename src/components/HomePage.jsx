@@ -1,4 +1,5 @@
 import '../styles/HomePage.css';
+import Shop from './Shop.jsx';
 
 function HomePage() {
     return (

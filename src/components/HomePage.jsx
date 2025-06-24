@@ -1,19 +1,21 @@
 import '../styles/HomePage.css';
-import Shop from './Shop.jsx';
+import { Link } from "react-router-dom";
 
 function HomePage() {
     return (
         <div>
             <div className="first-part">
                 <h1>Your Campus. Your Marketplace.</h1>
-                <div class="wrapper">
-                    <div class="typing-text">
+                <div className="wrapper">
+                    <div className="typing-text">
                         <span>Buy</span>
                         <span>Sell</span>
                         <span>Trade</span>
                     </div>
                 </div>
-                <button className='browse-button'>Browse</button>
+                <Link to="/shop">
+                    <button className='browse-button'>Browse</button>
+                </Link>
             </div>
         </div>
     )

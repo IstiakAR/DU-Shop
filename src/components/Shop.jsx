@@ -1,8 +1,10 @@
+import Header from "./Header";
+
 function Shop(){
     return(
-        <>
-        HI
-        </>
+        <div>
+            <Header />
+        </div>
     )
 }
 

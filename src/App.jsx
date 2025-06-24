@@ -3,7 +3,6 @@ import './styles/App.css'
 
 import HomePage from './components/HomePage';
 import Header from './components/Header';
-import Shop from './components/Shop';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -12,7 +11,6 @@ function App() {
     <>
       <Header />
       <HomePage />
-      <Shop/>
     </>
   )
 }

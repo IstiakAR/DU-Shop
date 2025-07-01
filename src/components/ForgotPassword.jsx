@@ -11,22 +11,8 @@ function ForgotPassword() {
         setEmail(e.target.value);
     }
     const handleSubmit = async () => {
-
         const { data, error } = await supabase.auth
-        .resetPasswordForEmail(email)
-
-        useEffect(() => {
-            supabase.auth.onAuthStateChange(async (event, session) => {
-                if (event == "PASSWORD_RECOVERY") {
-                    // Add a real page here && set it inside supabase settings
-                    const newPassword = prompt("What would you like your new password to be?");
-                    const { data, error } = await supabase.auth
-                        .updateUser({ password: newPassword })
-                    if (data) alert("Password updated successfully!")
-                    if (error) alert("There was an error updating your password.")
-                }
-            })
-        }, [])
+        .resetPasswordForEmail(email, {redirectTo: 'http://localhost:5173/reset-password'});
     }
     return(
         <div className="container">

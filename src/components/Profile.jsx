@@ -7,12 +7,22 @@ function Profile() {
     const navigate = useNavigate();
     useEffect(() => {
         const userInfo = async () => {
-            const { data, error } = await supabase.auth.getUser();
+            const { data: userData, error: userError } = await supabase.auth.getUser();
+            if (userError || !userData.user) {
+                console.error("Error fetching user:", userError);
+                setUser(null);
+                return;
+            }
+            const { data, error } = await 
+            supabase
+            .from('user')
+            .select('*')
+            .eq('id', userData.user.id);
             if (error) {
                 console.error("Error fetching user info:", error);
             } else {
-                console.log("User Info:", user);
-                setUser(data.user);
+                console.log("User Info:", data[0]);
+                setUser(data[0]);
             }
         };
         userInfo();
@@ -30,7 +40,7 @@ function Profile() {
             {user ? (
                 <div>
                     <p>Email: {user.email}</p>
-                    <p>Full Name: {user.user_metadata.full_name}</p>
+                    <p>Full Name: {user.name}</p>
                 </div>
             ) : (
                 <p>Loading user information...</p>

@@ -22,3 +22,14 @@
     gap: 20px;
     margin-right: 20px;
 }
+
+.logo-text{
+    color:white;
+}
+
+.du-logo{
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    margin-right: 10px;
+}

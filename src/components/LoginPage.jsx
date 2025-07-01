@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import axios from 'axios';
 import '../styles/LoginPage.css';
+import { Link } from 'react-router-dom';
+import exitIcon from '../assets/exit.svg';
 
 function Login() {
     const [isLogin, setIsLogin] = useState(true);
@@ -42,6 +44,13 @@ function Login() {
 
     return (
         <div className="container">
+            <div className="exit-button">
+                <Link to="/">
+                    <button type="button" className="exit-btn">
+                        <img src={exitIcon} alt="Exit" />
+                    </button>
+                </Link>
+            </div>
             <div className="login-form-container">
                 <h1>{isLogin ? "Login" : "Sign Up"}</h1>
                 

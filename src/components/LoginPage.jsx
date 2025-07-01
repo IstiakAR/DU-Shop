@@ -1,10 +1,13 @@
 import { useState } from 'react';
 import axios from 'axios';
 import '../styles/LoginPage.css';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import exitIcon from '../assets/exit.svg';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../App';
 
 function Login() {
+    const navigate = useNavigate();
     const [isLogin, setIsLogin] = useState(true);
     const [formData, setFormData] = useState({
         password: '',
@@ -18,25 +21,38 @@ function Login() {
 
     const handleSignUp = async (e) => {
         e.preventDefault();
-        console.log("Sign Up Data:", formData);
-        await axios.post('http://localhost:5000/sign-up', formData);
+        const { data, error } = await supabase.auth.signUp({
+            email: formData.email,
+            password: formData.password,
+            options: {
+                data: {
+                    full_name: formData.fullName,
+                },
+            },
+        });
+
+        if (error) {
+            alert("Sign up failed: " + error.message);
+        } else {
+            alert("Sign up successful! Please check your email to confirm your account.");
+            navigate('/');
+        }
     }
+
 
     const handleLogin = async (e) => {
         e.preventDefault();
-        console.log("Login Data:", formData);
-        try {
-            const response = await axios.post('http://localhost:5000/login', formData);
-            if (response.data.success) {
-                alert("Login successful!");
-            } else {
-                alert("Login failed. Please check your credentials.");
-            }
-        } catch (error) {
-            console.error("Error during login:", error);
-            alert("An error occurred during login. Please try again.");
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: formData.email,
+            password: formData.password,
+        });
+        if (error) {
+            alert("Login failed: " + error.message);
+        } else {
+            alert("Login successful!");
+            navigate('/');
         }
-    }
+    };
 
     const handleEdit = (e, field) =>{
         setFormData({ ...formData, [field]: e.target.value });
@@ -51,7 +67,7 @@ function Login() {
                     </button>
                 </Link>
             </div>
-            <div className="login-form-container">
+            <div className="form-container">
                 <h1>{isLogin ? "Login" : "Sign Up"}</h1>
                 
                 <form className="full-form">
@@ -73,7 +89,9 @@ function Login() {
                         <input type="password" id="password" name="password" onChange={(e) => handleEdit(e, 'password')} required />
                     </div>
 
-                    {isLogin && <a href="#" className="forgot-password">Forgot Password?</a>}
+                    {isLogin && <div style={{ textAlign: 'right' }}>
+                        <div className="forgot-password" onClick={() => navigate('/forgot-password')}>Forgot Password?</div>
+                    </div>}
 
                     {(isLogin) ? (
                         <button type="button" className="submit-btn" onClick={handleLogin}>Login</button>

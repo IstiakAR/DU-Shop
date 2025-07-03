@@ -1,10 +1,8 @@
 import { supabase } from "../App";
 import { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
 
 function Profile() {
     const [user, setUser] = useState(null);
-    const navigate = useNavigate();
     useEffect(() => {
         const userInfo = async () => {
             const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -28,12 +26,6 @@ function Profile() {
         userInfo();
     }, []);
 
-    const handleLogout = async () => {
-        const { error } = await supabase.auth.signOut();
-        if(!error){
-            navigate('/');
-        }
-    }
     return(
         <div className="container">
             <h2>User Profile</h2>
@@ -45,7 +37,6 @@ function Profile() {
             ) : (
                 <p>Loading user information...</p>
             )}
-            <button onClick={handleLogout}>Logout</button>
         </div>
     )
 }

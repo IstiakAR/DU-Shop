@@ -1,26 +1,28 @@
 import '../styles/Header.css';
 import { Link } from 'react-router-dom';
+import profileIcon from '../assets/profile.svg'
+import { useRef, useState } from 'react';
 import { supabase } from '../App';
-import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 
-function Header() {
-    const [isLoggedIn, setIsLoggedIn] = useState(false);
+function Header({isLoggedIn=false}) {
 
-    useEffect(() => {
-        const checkSession = async () => {
-            const { data } = await supabase.auth.getSession();
-            setIsLoggedIn(data.session !== null);
-        };
-        checkSession();
+    const navigate = useNavigate();
+    const [open, setOpen] = useState(false);
 
-        const { data: listener } = supabase.auth.onAuthStateChange((_event, session) => {
-            setIsLoggedIn(session !== null);
-        });
+    const handleClose = () => {
+        setOpen(false);
+    };
+    const handleToggle = () => {
+        setOpen(!open);
+    };
 
-        return () => {
-            listener.subscription.unsubscribe();
-        };
-    }, []);
+    const handleLogout = async () => {
+        const { error } = await supabase.auth.signOut();
+        if(!error){
+            navigate('/');
+        }
+    }
 
     return (
         <div className="header">
@@ -32,9 +34,20 @@ function Header() {
             </div>
             <div className='right-header'>
                 {isLoggedIn ? (
-                    <Link to="/profile">
-                        <button className='profile-button'>Profile</button>
-                    </Link>
+                    <>
+                    <img src={profileIcon} alt="Profile" className='profile-icon' 
+                    style={{width: 50, height: 50}} onClick={handleToggle}/>
+
+                    {open && (
+                        <div className='profile-dropdown-container'>
+                            <div className='profile-dropdown'>
+                                <button id="dropdown-button" onClick={() => navigate('/profile')}>View Profile</button>
+                                <button id="dropdown-button">Settings</button>
+                                <button id="dropdown-button" onClick={handleLogout}>Logout</button>
+                            </div>
+                        </div>
+                    )}
+                    </>
                 ) : (
                     <Link to="/login">
                         <button className='login-button'>Login</button>

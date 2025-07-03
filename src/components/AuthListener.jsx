@@ -9,26 +9,27 @@ export const completeProfile = async (authData, navigate) => {
     const email = user.email;
 
     const { data: pendingProfile } = await supabase
-        .from('pending_profiles')
+        .from('pending_profile')
         .select('full_name')
         .eq('email', email)
         .single();
 
-    let fullName = 'New User';
+    let fullName;
     if (pendingProfile) {
-        fullName = pendingProfile.full_name;
+        fullName = pendingProfile.name;
     }
-
-    // Use upsert to avoid duplicate key errors
-    await supabase
-        .from('user')
-        .upsert([
-            { id: userId, name: fullName, email: email }
-        ], { onConflict: ['id'] });
 
     if (pendingProfile) {
         await supabase
-            .from('pending_profiles')
+            .from('user')
+            .upsert([
+                { id: userId, name: fullName, email: email }
+            ], { onConflict: ['id'] });
+        }
+        
+    if (pendingProfile) {
+        await supabase
+            .from('pending_profile')
             .delete()
             .eq('email', email);
     }

@@ -1,9 +1,8 @@
-import Header from "./Header";
+import '../styles/HomePage.css';
 
 function Shop(){
     return(
         <div>
-            <Header />
         </div>
     )
 }

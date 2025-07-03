@@ -8,15 +8,16 @@ import Login from './components/LoginPage.jsx';
 import Profile from './components/Profile.jsx';
 import ForgotPassword from './components/ForgotPassword.jsx';
 import ResetPassword from './components/ResetPassword.jsx';
+import HomePage from './components/HomePage.jsx';
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <App />,
+    element: <App><HomePage /></App>,
   },
   {
     path: "shop",
-    element: <Shop />,
+    element: <App><Shop /></App>,
   },
   {
     path: "login",

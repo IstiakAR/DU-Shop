@@ -1,0 +1,18 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <!-- Circular Background -->
+  <circle cx="32" cy="32" r="32" fill="#FFB606"/>
+  <defs>
+    <linearGradient id="gradHead" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#2D1972"/> <!-- dark indigo -->
+      <stop offset="100%" stop-color="#4B2994"/> <!-- lighter indigo -->
+    </linearGradient>
+    <linearGradient id="gradBody" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#2D1972"/> <!-- dark indigo -->
+      <stop offset="100%" stop-color="#3C2485"/> <!-- slightly lighter indigo -->
+    </linearGradient>
+  </defs>
+  <!-- Head -->
+  <circle cx="32" cy="22" r="12" fill="url(#gradHead)" />
+  <!-- Body -->
+  <path d="M18 50c0-8 6.5-14 14-14s14 6 14 14v4H18v-4z" fill="url(#gradBody)" />
+</svg>

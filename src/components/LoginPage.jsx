@@ -23,7 +23,7 @@ function Login() {
         e.preventDefault();
 
         const { error: pendingError } = await supabase
-            .from('pending_profiles')
+            .from('pending_profile')
             .upsert([
                 { email: formData.email, full_name: formData.fullName }
             ]);

@@ -1,4 +1,4 @@
-import { supabase } from "../App";
+import supabase from "../supabase";
 import { useEffect, useState } from "react";
 
 function Profile() {

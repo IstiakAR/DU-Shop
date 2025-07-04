@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { supabase } from '../App';
+import supabase from '../supabase';
 import { useNavigate } from 'react-router-dom';
 
 export const completeProfile = async (authData, navigate) => {

@@ -3,7 +3,7 @@ import '../styles/LoginPage.css';
 import { Link } from 'react-router-dom';
 import exitIcon from '../assets/exit.svg';
 import { useNavigate } from 'react-router-dom';
-import { supabase } from '../App';
+import supabase from '../supabase';
 import { completeProfile } from './AuthListener';
 
 function Login() {

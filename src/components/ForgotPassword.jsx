@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import '../styles/LoginPage.css';
 import exitIcon from '../assets/exit.svg';
 import { useState } from 'react';
-import { supabase } from '../App';
+import supabase from '../supabase';
 import { useEffect } from 'react';
 
 function ForgotPassword() {

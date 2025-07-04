@@ -3,7 +3,7 @@ import '../styles/Header.css';
 import Cart from './Cart';
 
 import { useState } from 'react';
-import { supabase } from '../App';
+import supabase from '../supabase';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
 
@@ -15,7 +15,12 @@ function Header({isLoggedIn=false}) {
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
     const [cart, setCart] = useState(false);
+    const [searchText, setSearchText] = useState('');
 
+    const handleEdit =(e) => {
+        e.preventDefault();
+        setSearchText(e.target.value);
+    }
     const handleClose = () => {
         setOpen(false);
     };
@@ -28,8 +33,8 @@ function Header({isLoggedIn=false}) {
         if(!error){
             navigate('/');
         }
-    }
-    
+    };
+
     const handleCart = () => {
         setCart(!cart);
     }
@@ -41,6 +46,10 @@ function Header({isLoggedIn=false}) {
                     <img src="/DU-Shop.png" alt="DU Shop Logo" className='du-logo'/>
                 </Link>
                 <h1 className='logo-text'>DU Shop</h1>
+            </div>
+            <div className='center-header'>
+                <input type="text" placeholder='Search for products...' 
+                className='search-input' onChange={handleEdit} value={searchText}/>
             </div>
             <div className='right-header'>
                 {isLoggedIn ? (
@@ -67,7 +76,7 @@ function Header({isLoggedIn=false}) {
                     </>
                 ) : (
                     <Link to="/login">
-                        <button className='login-button'>Login</button>
+                        <button className='login-button yellow-button'>Login</button>
                     </Link>
                 )}
             </div>

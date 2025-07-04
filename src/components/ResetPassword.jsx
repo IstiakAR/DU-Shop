@@ -1,6 +1,6 @@
 import '../styles/LoginPage.css';
 import { useState, useEffect } from 'react';
-import { supabase } from '../App';
+import supabase from '../supabase';
 
 function ResetPassword() {
     const [newPassword, setNewPassword] = useState('');

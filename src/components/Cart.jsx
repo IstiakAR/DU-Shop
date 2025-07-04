@@ -9,8 +9,8 @@ function Cart({handleCart}){
             <div className='cart-sidebar'>
                 <div className='cart-header'>
                     <h2>Cart</h2>
-                    <div className='close-button'>
-                        <button className='close-btn' onClick={handleCart}>
+                    <div className='cart-close-button'>
+                        <button className='cart-close-btn' onClick={handleCart}>
                             <img src={closeIcon} alt="Close Cart" style={{width: 30, height: 30}} />
                         </button>
                     </div>

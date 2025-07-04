@@ -1,14 +1,20 @@
 import '../styles/Header.css';
-import { Link } from 'react-router-dom';
-import profileIcon from '../assets/profile.svg'
-import { useRef, useState } from 'react';
+
+import Cart from './Cart';
+
+import { useState } from 'react';
 import { supabase } from '../App';
+import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
+
+import cartIcon from '../assets/cart.svg';
+import profileIcon from '../assets/profile.svg'
 
 function Header({isLoggedIn=false}) {
 
     const navigate = useNavigate();
     const [open, setOpen] = useState(false);
+    const [cart, setCart] = useState(false);
 
     const handleClose = () => {
         setOpen(false);
@@ -23,6 +29,10 @@ function Header({isLoggedIn=false}) {
             navigate('/');
         }
     }
+    
+    const handleCart = () => {
+        setCart(!cart);
+    }
 
     return (
         <div className="header">
@@ -35,8 +45,14 @@ function Header({isLoggedIn=false}) {
             <div className='right-header'>
                 {isLoggedIn ? (
                     <>
+                    <img src={cartIcon} alt="Cart" className='cart-icon' 
+                    style={{width: 45, height: 45}} onClick={handleCart}/>
                     <img src={profileIcon} alt="Profile" className='profile-icon' 
                     style={{width: 50, height: 50}} onClick={handleToggle}/>
+
+                    {cart && (
+                        <Cart handleCart={handleCart} />
+                    )}
 
                     {open && (
                         <div className='profile-dropdown-container'>
@@ -47,6 +63,7 @@ function Header({isLoggedIn=false}) {
                             </div>
                         </div>
                     )}
+
                     </>
                 ) : (
                     <Link to="/login">

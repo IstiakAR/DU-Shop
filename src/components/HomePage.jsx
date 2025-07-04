@@ -14,7 +14,7 @@ function HomePage() {
                     </div>
                 </div>
                 <Link to="/shop">
-                    <button className='browse-button'>Browse</button>
+                    <button className='browse-button yellow-button'>Browse</button>
                 </Link>
             </div>
         </div>

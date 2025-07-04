@@ -1,4 +1,4 @@
-button {
+.yellow-button {
   background: #ffb606;
   font-family: inherit;
   padding: 0.6em 1.3em;
@@ -10,12 +10,12 @@ button {
   cursor: pointer;
 }
 
-button:hover {
+.yellow-button:hover {
   transform: translate(-0.05em, -0.05em);
   box-shadow: 0.15em 0.15em;
 }
 
-button:active {
+.yellow-button:active {
   transform: translate(0.05em, 0.05em);
   box-shadow: 0.05em 0.05em;
 }

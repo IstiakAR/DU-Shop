@@ -23,6 +23,11 @@
     margin-right: 20px;
 }
 
+.center-header{
+    margin-left: -20px;
+    gap: 20px;
+}
+
 .logo-text{
     color:white;
 }

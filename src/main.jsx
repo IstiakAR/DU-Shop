@@ -9,6 +9,7 @@ import Profile from './components/Profile.jsx';
 import ForgotPassword from './components/ForgotPassword.jsx';
 import ResetPassword from './components/ResetPassword.jsx';
 import HomePage from './components/HomePage.jsx';
+import ItemDetails from './components/ItemDetails.jsx';
 
 const router = createBrowserRouter([
   {
@@ -34,6 +35,10 @@ const router = createBrowserRouter([
   {
     path: "reset-password",
     element: <ResetPassword />
+  },
+  {
+    path : "item/:id",
+    element: <App><ItemDetails /></App>
   }
 
 ]);

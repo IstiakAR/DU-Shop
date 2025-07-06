@@ -5,11 +5,23 @@
     justify-content: flex-start;
     gap: 20px;
 }
+.top-part{
+    display: flex;
+    justify-content: center;
+    margin-top: 50px;
+
+}
+
+.info-container {
+    padding: 20px;
+    background: #fff;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 500px;
+}
 
 .picture-container{
     display: flex;
     flex-direction: row;
-    margin-top: 50px;
     gap: 10px;
 }
 
@@ -36,7 +48,7 @@
 
 .picture-area{
     background-color: white;
-    width: 1200px;
+    width: 800px;
     height: 600px;
     display: flex;
     justify-content: center;
@@ -53,7 +65,7 @@
     display: flex;
     flex-direction: column;
     background-color: white;
-    width: 1270px;
+    width: 1410px;
     height: 600px;
     padding: 20px;
 }
@@ -61,6 +73,7 @@
 .tab-bar{
     display: flex;
     flex-direction: row;
+    align-items: center;
     gap: 20px;
     margin-bottom: 20px;
     font-weight: bold;

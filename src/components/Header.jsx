@@ -1,6 +1,7 @@
 import '../styles/Header.css';
 import Cart from './Cart';
 import CategoryBar from './CategoryBar';
+import addIcon from '../assets/add.svg';
 import cartIcon from '../assets/cart.svg';
 import profileIcon from '../assets/profile.svg'
 
@@ -39,6 +40,11 @@ function Header({isLoggedIn=false}) {
         setCart(!cart);
         if (open) setOpen(false);
     }
+    const handleAdd = () => {
+        if (isLoggedIn) {
+            navigate('/add-product');
+        }
+    };
 
     return (
         <div className="header">
@@ -56,6 +62,8 @@ function Header({isLoggedIn=false}) {
             <div className='right-header'>
                 {isLoggedIn ? (
                     <>
+                    <img src={addIcon} alt="Add" className='add-icon' 
+                        style={{width: 45, height: 45}} onClick={handleAdd}/>
                     <img src={cartIcon} alt="Cart" className='cart-icon' 
                         style={{width: 45, height: 45}} onClick={handleCart}/>
                     <img src={profileIcon} alt="Profile" className='profile-icon' 

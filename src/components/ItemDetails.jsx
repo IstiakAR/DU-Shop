@@ -11,15 +11,22 @@ function ItemDetails({ prop }) {
 
     return(
         <div className='container'>
-            <div className='picture-container'>
-                <div className='picture-bar'>
-                    <img src={bigTemp} alt="Item" onClick={() => setCurrentImage(bigTemp)} />
-                    <img src={mediumTemp} alt="Item" onClick={() => setCurrentImage(mediumTemp)} />
-                    <img src={smallTemp} alt="Item" onClick={() => setCurrentImage(smallTemp)} />
+            <div className='top-part'>
+                <div className='picture-container'>
+                    <div className='picture-bar'>
+                        <img src={bigTemp} alt="Item" onClick={() => setCurrentImage(bigTemp)} />
+                        <img src={mediumTemp} alt="Item" onClick={() => setCurrentImage(mediumTemp)} />
+                        <img src={smallTemp} alt="Item" onClick={() => setCurrentImage(smallTemp)} />
+                    </div>
+                    <div className='picture-area'>
+                        <img src={currentImage} alt="Item" 
+                        className='main-picture'/>
+                    </div>
                 </div>
-                <div className='picture-area'>
-                    <img src={currentImage} alt="Item" 
-                    className='main-picture'/>
+                <div className='info-container'>
+                    <h2>Hello</h2>
+                    <h4>Category {'>'} Subcategory</h4>
+                    <p>Description will be here soon.</p>
                 </div>
             </div>
             <div className='details-container'>

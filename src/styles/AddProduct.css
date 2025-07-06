@@ -1,0 +1,68 @@
+.info-form{
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px; 
+}
+.info-select{
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.name{
+    width: 70%;
+}
+.price{
+    width: 30%;
+}
+.info-select select{
+    height:50px;
+    background-color: white;
+    border: 1px solid #ccc;
+    flex: 1;
+    padding: 5px 10px;
+}
+
+textarea{
+    height: 360px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    resize: none;
+    flex: 1 1 auto;
+    min-height: 0;
+    width: 100%;
+    box-sizing: border-box;
+}
+.submit-btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #2d1972;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.submit-btn:hover {
+    background-color: #ffb606;
+}
+
+.toggle-btn{
+    background-color: aliceblue;
+    padding: 5px 10px;
+    border-radius: 10px;
+    text-decoration: none;
+}
+
+.toggle-btn.active{
+    background-color: #2d1972;
+    color: white;
+}

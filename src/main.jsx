@@ -10,6 +10,7 @@ import ForgotPassword from './components/ForgotPassword.jsx';
 import ResetPassword from './components/ResetPassword.jsx';
 import HomePage from './components/HomePage.jsx';
 import ItemDetails from './components/ItemDetails.jsx';
+import AddProduct from './components/AddProduct.jsx';
 
 const router = createBrowserRouter([
   {
@@ -39,8 +40,11 @@ const router = createBrowserRouter([
   {
     path : "item/:id",
     element: <App><ItemDetails /></App>
+  },
+  {
+    path: "add-product",
+    element: <App><AddProduct /></App>
   }
-
 ]);
 
 createRoot(document.getElementById('root')).render(

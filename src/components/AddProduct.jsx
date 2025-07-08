@@ -1,8 +1,9 @@
 import '../styles/ItemDetails.css';
 import '../styles/AddProduct.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import addImage from '../assets/addImage.svg'
 import ReactMarkdown from 'react-markdown';
+import { fetchCategories, fetchSubcategories } from '../fetch';
 
 function AddProduct() {
     const [image, setImage] = useState([]);
@@ -11,6 +12,23 @@ function AddProduct() {
     const [specs, setSpecs] = useState('');
     const [currentContent, setCurrentContent] = useState('details');
     const [mode, setMode] = useState('edit');
+    const [categories, setCategories] = useState([]);
+    const [subcategories, setSubcategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState(null);
+
+    useEffect(() => {
+        fetchCategories().then(setCategories).catch(console.error);
+    }, []);
+
+    useEffect(() => {
+        if (!selectedCategory) {
+            setSubcategories([]);
+            return;
+        }
+        fetchSubcategories(selectedCategory)
+            .then(setSubcategories)
+            .catch(console.error);
+    }, [selectedCategory]);
 
     const handleImagePick = (event) => {
         const file = event.target.files[0];
@@ -29,10 +47,12 @@ function AddProduct() {
                     <div className='picture-bar'>
                         <label style={{ cursor: 'pointer' }}>
                             <img src={addImage} alt="Add" />
-                            <input type="file" accept="image/*" onChange={handleImagePick} style={{ display: 'none' }} />
+                            <input type="file" accept="image/*" 
+                            onChange={handleImagePick} style={{ display: 'none' }} />
                         </label>
                         {image.map((img, index) => (
-                            <img key={index} src={img} className='thumbnail' onClick={() => setCurrentImage(img)} />
+                            <img key={index} src={img} className='thumbnail' 
+                            onClick={() => setCurrentImage(img)} />
                         ))}
                     </div>
                     <div className='picture-area'>
@@ -50,17 +70,22 @@ function AddProduct() {
                                 <option value="">
                                     Select Category
                                 </option>
-                                <option value="clothing">Clothing</option>
-                                <option value="electronics">Electronics</option>
-                                <option value="home">Home</option>
+                                {categories.map((category) => (
+                                    <option key={category.id} value={category.id}
+                                    onClick={() => setSelectedCategory(category.id)}>
+                                        {category.name}
+                                    </option>
+                                ))}
                             </select>
                             <select required defaultValue="">
                                 <option value="">
                                     Select Subcategory
                                 </option>
-                                <option value="clothing">Clothing</option>
-                                <option value="electronics">Electronics</option>
-                                <option value="home">Home</option>
+                                {subcategories.map((subcategory) => (
+                                    <option key={subcategory.id} value={subcategory.id}>
+                                        {subcategory.name}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                         <textarea name="description" id="description" placeholder="Product Description" required></textarea>

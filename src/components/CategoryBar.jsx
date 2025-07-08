@@ -2,32 +2,41 @@ import '../styles/CategoryBar.css';
 import cancelIcon from '../assets/cancel.svg';
 import sidebarIcon from '../assets/sidebar.svg';
 import { useState, useRef, useEffect } from 'react';
-import supabase from '../supabase.jsx';
+import { fetchCategories, fetchSubcategories } from '../fetch';
 
 function CategoryBar() {
-    console.log("CategoryBar mounted");
     const [categories, setCategories] = useState([]);
-    useEffect(() => {
-        console.log("supabase object:", supabase);
-        const fetchCategories = async () => {
-            console.log("Fetching categories...");
-            const { data, error } = await supabase
-                .from('category')
-                .select('id, name');
-            if (error) throw error;
-            setCategories(data);
-            console.log('Fetched categories:', data);
-        };
-        fetchCategories();
-    }, []);
+    const [subcategories, setSubcategories] = useState([]);
+    const [selectedCategory, setSelectedCategory] = useState();
     const [isOpen, setIsOpen] = useState(false);
     const iconRef = useRef(null);
-    const [barTop, setBarTop] = useState(0);
-    const [barLeft, setBarLeft] = useState(0);
+
+    useEffect(() => {
+        fetchCategories().then(setCategories).catch(console.error);
+    }, []);
+
+    useEffect(() => {
+        if (!selectedCategory) {
+            setSubcategories([]);
+            return;
+        }
+        fetchSubcategories(selectedCategory)
+            .then(setSubcategories)
+            .catch(console.error);
+    }, [selectedCategory]);
+
+    const handleCategoryClick = (categoryId) => {
+        setSelectedCategory(categoryId);
+    };
+
+    const handleBack = () => {
+        setSelectedCategory(null);
+        setSubcategories([]);
+    };
 
     return (
         <div className="sidebar-icon-container" 
-        style={{ position: 'relative', display: 'inline-block' }}>
+            style={{ position: 'relative', display: 'inline-block' }}>
             <img
                 ref={iconRef}
                 src={isOpen ? cancelIcon : sidebarIcon}
@@ -41,12 +50,34 @@ function CategoryBar() {
                     <div className="sidebar-backdrop" onClick={() => setIsOpen(false)} />
                     <div className="sidebar-container">
                         <div className="sidebar-section">
-                            {categories.map((dept) => (
-                                <div className="sidebar-link" key={dept.id}>
-                                    {dept.name}
-                                    <span className="sidebar-arrow">{'>'}</span>
-                                </div>
-                            ))}
+                            {!selectedCategory ? (
+                                categories.map((dept) => (
+                                    <div
+                                        className="sidebar-link"
+                                        key={dept.id}
+                                        onClick={() => handleCategoryClick(dept.id)}
+                                        style={{ cursor: 'pointer' }}
+                                    >
+                                        {dept.name}
+                                        <span className="sidebar-arrow">{'>'}</span>
+                                    </div>
+                                ))
+                            ) : (
+                                <>
+                                    <div
+                                        className="sidebar-link"
+                                        onClick={handleBack}
+                                        style={{ cursor: 'pointer', fontWeight: 'bold' }}
+                                    >
+                                        {'< Back'}
+                                    </div>
+                                    {subcategories.map((sub) => (
+                                        <div className="sidebar-link" key={sub.id}>
+                                            {sub.name}
+                                        </div>
+                                    ))}
+                                </>
+                            )}
                         </div>
                     </div>
                 </>

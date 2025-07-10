@@ -22,6 +22,9 @@
     gap: 20px;
     margin-right: 20px;
 }
+.right-header img{
+    cursor: pointer;
+}
 
 .center-header{
     margin-left: -20px;
@@ -41,14 +44,17 @@
 
 .profile-dropdown-container{
     position: absolute;
-    top: 100px;
-    right:15px;
+    top: 95px;
+    right:1px;
     display: block;
+    border: 2px solid #222;
+    box-sizing: border-box;
+
 }
 
 .profile-dropdown{
     background-color: #fafafa;
-    height: 300px;
+    height: 125px;
     width: 300px;
     border-radius: 10px;
     display: flex;

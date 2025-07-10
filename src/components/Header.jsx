@@ -5,7 +5,7 @@ import addIcon from '../assets/add.svg';
 import cartIcon from '../assets/cart.svg';
 import profileIcon from '../assets/profile.svg'
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import supabase from '../supabase';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
@@ -16,6 +16,27 @@ function Header({isLoggedIn=false}) {
     const [open, setOpen] = useState(false);
     const [cart, setCart] = useState(false);
     const [searchText, setSearchText] = useState('');
+
+    const dropdownRef = useRef(null);
+
+    useEffect(() => {
+        if (!open) return;
+
+        function handleClickOutside(event) {
+            if (
+                dropdownRef.current &&
+                !dropdownRef.current.contains(event.target) &&
+                event.target.className !== 'profile-icon'
+            ) {
+                setOpen(false);
+            }
+        }
+
+        document.addEventListener('mousedown', handleClickOutside);
+        return () => {
+            document.removeEventListener('mousedown', handleClickOutside);
+        };
+    }, [open]);
 
     const handleEdit =(e) => {
         e.preventDefault();
@@ -74,10 +95,10 @@ function Header({isLoggedIn=false}) {
                     )}
 
                     {open && (
-                        <div className='profile-dropdown-container'>
+                        <div className='profile-dropdown-container' ref={dropdownRef}>
                             <div className='profile-dropdown'>
-                                <button id="dropdown-button" onClick={() => navigate('/profile')}>View Profile</button>
-                                <button id="dropdown-button">Settings</button>
+                                <button id="dropdown-button" onClick={() => {navigate('/profile');
+                                     setOpen(false);}}>View Profile</button>
                                 <button id="dropdown-button" onClick={handleLogout}>Logout</button>
                             </div>
                         </div>

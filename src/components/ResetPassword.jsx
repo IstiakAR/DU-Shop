@@ -37,7 +37,7 @@ function ResetPassword() {
     };
 
     return (
-        <div className="container">
+        <div className="login-container">
         <form onSubmit={handleSubmit}>
             <div className="form-group">
                 <label htmlFor="new-password">New Password:</label>

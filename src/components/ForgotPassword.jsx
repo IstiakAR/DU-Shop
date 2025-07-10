@@ -15,7 +15,7 @@ function ForgotPassword() {
         .resetPasswordForEmail(email, {redirectTo: 'http://localhost:5173/reset-password'});
     }
     return(
-        <div className="container">
+        <div className="login-container">
             <div className="exit-button">
                 <Link to="/">
                     <button type="button" className="exit-btn">

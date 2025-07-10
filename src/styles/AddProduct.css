@@ -55,14 +55,14 @@ textarea{
     background-color: #ffb606;
 }
 
-.toggle-btn{
+.edit-preview{
     background-color: aliceblue;
     padding: 5px 10px;
     border-radius: 10px;
     text-decoration: none;
 }
 
-.toggle-btn.active{
+.edit-preview.active{
     background-color: #2d1972;
     color: white;
 }

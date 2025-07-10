@@ -96,8 +96,8 @@ function AddProduct() {
             <div className='details-container'>
                 <div className='tab-bar'>
                     <div style={{ display: 'flex', gap: '10px' }}>
-                        <button className={`toggle-btn${mode === 'edit' ? ' active' : ''}`} onClick={() => setMode('edit')}>Edit</button>
-                        <button className={`toggle-btn${mode === 'preview' ? ' active' : ''}`} onClick={() => setMode('preview')}>Preview</button>
+                        <button className={`edit-preview${mode === 'edit' ? ' active' : ''}`} onClick={() => setMode('edit')}>Edit</button>
+                        <button className={`edit-preview${mode === 'preview' ? ' active' : ''}`} onClick={() => setMode('preview')}>Preview</button>
                     </div>
                     <span onClick={() => {setCurrentContent('details')}}>Details</span>
                     <span onClick={() => {setCurrentContent('specs')}}>Specs</span>

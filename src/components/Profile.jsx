@@ -1,7 +1,11 @@
+import '../styles/Profile.css';
 import supabase from "../supabase";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import rightArrow from '../assets/rightArrow.svg';
 
 function Profile() {
+    const navigate = useNavigate();
     const [user, setUser] = useState(null);
     useEffect(() => {
         const userInfo = async () => {
@@ -16,9 +20,7 @@ function Profile() {
             .from('user')
             .select('*')
             .eq('id', userData.user.id);
-            if (error) {
-                console.error("Error fetching user info:", error);
-            } else {
+            if (!error) {
                 console.log("User Info:", data[0]);
                 setUser(data[0]);
             }
@@ -26,18 +28,41 @@ function Profile() {
         userInfo();
     }, []);
 
-    return(
-        <div className="container">
-            <h2>User Profile</h2>
-            {user ? (
-                <div>
-                    <p>Email: {user.email}</p>
-                    <p>Full Name: {user.name}</p>
+    return (
+        <div className="profile-container">
+            <div className="profile-card">
+                <div className="profile-row">
+                    <span>Name</span>
+                    <span>{user ? user.name : ''}</span>
                 </div>
-            ) : (
-                <p>Loading user information...</p>
-            )}
+                <div className="profile-divider" />
+                <div className="profile-row">
+                    <span>Email</span>
+                    <span>{user ? user.email : ''}</span>
+                </div>
+                <div className="profile-divider" />
+                <div className="profile-link-row" onClick={() => navigate('/forgot-password')}>
+                    <span>Change password</span>
+                    <span className="profile-arrow">
+                        <img src={rightArrow} />
+                    </span>
+                </div>
+                <div className="profile-divider" />
+                <div className="profile-link-row" onClick={() => navigate('/seller')}>
+                    <span>Seller dashboard</span>
+                    <span className="profile-arrow">
+                        <img src={rightArrow} />
+                    </span>
+                </div>
+                <div className="profile-divider" />
+                <div className="profile-link-row" onClick={() => navigate('/admin')}>
+                    <span>Admin dashboard</span>
+                    <span className="profile-arrow">
+                        <img src={rightArrow} />
+                    </span>
+                </div>
+            </div>
         </div>
-    )
+    );
 }
 export default Profile;

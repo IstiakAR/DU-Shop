@@ -22,13 +22,6 @@ function Login() {
     const handleSignUp = async (e) => {
         e.preventDefault();
 
-        const { error: pendingError } = await supabase
-            .from('pending_profile')
-            .upsert([
-                { email: formData.email, full_name: formData.fullName }
-            ]);
-        console.log(pendingError);
-
         const { data, error } = await supabase.auth.signUp({
             email: formData.email,
             password: formData.password,
@@ -37,6 +30,19 @@ function Login() {
         if (error) {
             alert("Sign up failed: " + error.message);
         } else {
+            const userId = data?.user?.id;
+            if (userId) {
+                await supabase
+                    .from('user')
+                    .upsert([
+                        {
+                            id: userId,
+                            name: formData.fullName,
+                            email: formData.email,
+                            status: 'pending'
+                        }
+                    ], { onConflict: ['id'] });
+            }
             alert("Sign up successful! Please check your email to confirm your account.");
             navigate('/login');
         }
@@ -45,6 +51,22 @@ function Login() {
 
     const handleSignIn = async (e) => {
         e.preventDefault();
+
+        const { data: userProfile, error: userError } = await supabase
+            .from('user')
+            .select('status')
+            .eq('email', formData.email)
+            .single();
+
+        if (userError || !userProfile) {
+            alert("No account found with this email.");
+            return;
+        }
+
+        if (userProfile.status === 'pending') {
+            alert("Please confirm your email before signing in.");
+            return;
+        }
 
         const { data: authData, error: signInError } = await supabase.auth.signInWithPassword({
             email: formData.email,

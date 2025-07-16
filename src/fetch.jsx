@@ -17,3 +17,9 @@ export async function fetchSubcategories(categoryId) {
     if (error) throw error;
     return data;
 }
+
+export async function getUserID() {
+    const { data, error } = await supabase.auth.getUser();
+    if (error) throw error;
+    return data?.user?.id;
+}

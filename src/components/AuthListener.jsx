@@ -8,30 +8,23 @@ export const completeProfile = async (authData, navigate) => {
     const userId = user.id;
     const email = user.email;
 
-    const { data: pendingProfile } = await supabase
-        .from('pending_profile')
-        .select('full_name')
-        .eq('email', email)
+    const { data: userProfile } = await supabase
+        .from('user')
+        .select('name, status')
+        .eq('id', userId)
         .single();
 
-    let fullName;
-    if (pendingProfile) {
-        fullName = pendingProfile.name;
-    }
-
-    if (pendingProfile) {
+    if (!userProfile) {
         await supabase
             .from('user')
             .upsert([
-                { id: userId, name: fullName, email: email }
+                { id: userId, name: user.user_metadata?.full_name || '', email: email, status: 'pending' }
             ], { onConflict: ['id'] });
-        }
-        
-    if (pendingProfile) {
+    } else if (userProfile.status === 'pending') {
         await supabase
-            .from('pending_profile')
-            .delete()
-            .eq('email', email);
+            .from('user')
+            .update({ status: 'confirmed' })
+            .eq('id', userId);
     }
 
     if (navigate) navigate('/');

@@ -1,7 +1,0 @@
-fastapi
-uvicorn
-python-dotenv
-supabase
-aiosmtplib
-pydantic
-email-validator

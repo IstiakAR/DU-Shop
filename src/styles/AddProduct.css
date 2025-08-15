@@ -17,8 +17,8 @@
 .name{
     width: 70%;
 }
-.price{
-    width: 30%;
+.price, .stock{
+    width: 25%;
 }
 .info-select select{
     height:50px;

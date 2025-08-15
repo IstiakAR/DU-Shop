@@ -3,7 +3,8 @@ import '../styles/AddProduct.css';
 import { useEffect, useState } from 'react';
 import addImage from '../assets/addImage.svg'
 import ReactMarkdown from 'react-markdown';
-import { fetchCategories, fetchSubcategories } from '../fetch';
+import { fetchCategories, fetchSubcategories, getUserID } from '../fetch';
+import supabase from '../supabase';
 
 function AddProduct() {
     const [image, setImage] = useState([]);
@@ -15,6 +16,11 @@ function AddProduct() {
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
+    const [selectedSubcategory, setSelectedSubcategory] = useState(null);
+    const [name, setName] = useState('');
+    const [price, setPrice] = useState('');
+    const [stock, setStock] = useState('');
+    const [description, setDescription] = useState('');
 
     useEffect(() => {
         fetchCategories().then(setCategories).catch(console.error);
@@ -36,6 +42,72 @@ function AddProduct() {
             const url = URL.createObjectURL(file);
             setImage((prevImages) => [...prevImages, url]);
             setCurrentImage(url);
+        }
+    };
+
+    const handleSubmit = async (event) => {
+        event.preventDefault();
+        
+        try {
+            const userId = await getUserID();
+            
+            // First insert into product table
+            const { data: productData, error: productError } = await supabase
+                .from('product') 
+                .insert([
+                    { 
+                        name, 
+                        price: parseInt(price), 
+                        stock: parseInt(stock), 
+                        sub_id: selectedSubcategory,  // Changed from subcategory to sub_id
+                        type: 'regular',  // Added required type field
+                        seller_id: userId  // Changed from user_id to seller_id
+                    }
+                ])
+                .select();
+
+            if (productError) {
+                console.error('Product insert error:', productError);
+                alert('Failed to add product');
+                return;
+            }
+
+            // Then insert into product_details table using product id as primary key
+            const { data: detailsData, error: detailsError } = await supabase
+                .from('product_details') 
+                .insert([
+                    { 
+                        id: productData[0].id,  // Use product id as primary key
+                        description,
+                        detail: details,  // Changed from details to detail
+                        specs
+                    }
+                ]);
+
+            if (detailsError) {
+                console.error('Product details insert error:', detailsError);
+                alert('Failed to add product details');
+                return;
+            }
+
+            console.log('Product added successfully:', productData[0]);
+            alert('Product added successfully!');
+            
+            // Reset form
+            setName('');
+            setPrice('');
+            setStock('');
+            setDescription('');
+            setDetails('');
+            setSpecs('');
+            setImage([]);
+            setCurrentImage(null);
+            setSelectedCategory(null);
+            setSelectedSubcategory(null);
+            
+        } catch (error) {
+            console.error('Unexpected error:', error);
+            alert('An unexpected error occurred');
         }
     };
 
@@ -62,8 +134,12 @@ function AddProduct() {
                 <div className="info-container">
                     <form className='info-form'>
                         <div className='info-select'>
-                            <input type="text" placeholder="Product Name" className='name' required />
-                            <input type="number" placeholder="Price" className='price' required />
+                            <input type="text" placeholder="Product Name" className='name' required 
+                            onChange={(e) => setName(e.target.value)} />
+                            <input type="number" placeholder="Price" className='price' required 
+                            onChange={(e) => setPrice(e.target.value)} />
+                            <input type="number" placeholder="Stock" className='stock' required 
+                            onChange={(e) => setStock(e.target.value)} />
                         </div>
                         <div className='info-select'>
                             <select required defaultValue="">
@@ -82,14 +158,16 @@ function AddProduct() {
                                     Select Subcategory
                                 </option>
                                 {subcategories.map((subcategory) => (
-                                    <option key={subcategory.id} value={subcategory.id}>
+                                    <option key={subcategory.id} value={subcategory.id}
+                                    onClick={() => setSelectedSubcategory(subcategory.id)}>
                                         {subcategory.name}
                                     </option>
                                 ))}
                             </select>
                         </div>
-                        <textarea name="description" id="description" placeholder="Product Description" required></textarea>
-                        <button type="submit" className='submit-btn'>Add Product</button>
+                        <textarea name="description" id="description" placeholder="Product Description" required
+                        onChange={(e) => setDescription(e.target.value)}></textarea>
+                        <button type="submit" className='submit-btn' onClick={handleSubmit}>Add Product</button>
                     </form>
                 </div>
             </div>

@@ -2,6 +2,7 @@ import '../styles/ItemDetails.css';
 import '../styles/AddProduct.css';
 import { useEffect, useState } from 'react';
 import addImage from '../assets/addImage.svg'
+import deleteImage from '../assets/deleteImage.svg';
 import ReactMarkdown from 'react-markdown';
 import { fetchCategories, fetchSubcategories, getUserID } from '../fetch';
 import supabase from '../supabase';
@@ -9,18 +10,27 @@ import supabase from '../supabase';
 function AddProduct() {
     const [image, setImage] = useState([]);
     const [currentImage, setCurrentImage] = useState(null);
-    const [details, setDetails] = useState('');
-    const [specs, setSpecs] = useState('');
     const [currentContent, setCurrentContent] = useState('details');
+
     const [mode, setMode] = useState('edit');
+    const [disable, setDisable] = useState(false);
+
     const [categories, setCategories] = useState([]);
     const [subcategories, setSubcategories] = useState([]);
     const [selectedCategory, setSelectedCategory] = useState(null);
     const [selectedSubcategory, setSelectedSubcategory] = useState(null);
-    const [name, setName] = useState('');
-    const [price, setPrice] = useState('');
-    const [stock, setStock] = useState('');
-    const [description, setDescription] = useState('');
+
+    const [productData, setProductData] = useState({
+        name: '',
+        price: '',
+        stock: '',
+        subcategory: ''
+    });
+    const [productDesc, setProductDesc] = useState({
+        description: '',
+        details: '',
+        specs: ''
+    });
 
     useEffect(() => {
         fetchCategories().then(setCategories).catch(console.error);
@@ -44,77 +54,84 @@ function AddProduct() {
             setCurrentImage(url);
         }
     };
-
+    const infoSelect = (categories) => {
+        const isSubcategory = categories === subcategories;
+        return (
+            <select 
+                required 
+                value={isSubcategory ? selectedSubcategory || '' : selectedCategory || ''}
+                onChange={(e) => {
+                    const value = e.target.value || null;
+                    if (isSubcategory) {
+                        setSelectedSubcategory(value);
+                    } else {
+                        setSelectedCategory(value);
+                        setSelectedSubcategory(null);
+                    }
+                }}
+            >
+                <option value="">
+                    Select {isSubcategory ? 'Subcategory' : 'Category'}
+                </option>
+                {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                        {category.name}
+                    </option>
+                ))}
+            </select>
+        )
+    }
     const handleSubmit = async (event) => {
         event.preventDefault();
-        
-        try {
-            const userId = await getUserID();
-            
-            // First insert into product table
-            const { data: productData, error: productError } = await supabase
-                .from('product') 
-                .insert([
-                    { 
-                        name, 
-                        price: parseInt(price), 
-                        stock: parseInt(stock), 
-                        sub_id: selectedSubcategory,  // Changed from subcategory to sub_id
-                        type: 'regular',  // Added required type field
-                        seller_id: userId  // Changed from user_id to seller_id
-                    }
-                ])
-                .select();
+        setDisable(true);
+        const userId = await getUserID();
 
-            if (productError) {
-                console.error('Product insert error:', productError);
-                alert('Failed to add product');
-                return;
-            }
+        const { data: data, error: productError } = await supabase
+            .from('product')
+            .insert([
+                { 
+                    name: productData.name,
+                    price: parseInt(productData.price), 
+                    stock: parseInt(productData.stock), 
+                    sub_id: selectedSubcategory,
+                    type: 'product',
+                    seller_id: userId
+                }
+            ])
+            .select();
 
-            // Then insert into product_details table using product id as primary key
-            const { data: detailsData, error: detailsError } = await supabase
-                .from('product_details') 
-                .insert([
-                    { 
-                        id: productData[0].id,  // Use product id as primary key
-                        description,
-                        detail: details,  // Changed from details to detail
-                        specs
-                    }
-                ]);
-
-            if (detailsError) {
-                console.error('Product details insert error:', detailsError);
-                alert('Failed to add product details');
-                return;
-            }
-
-            console.log('Product added successfully:', productData[0]);
-            alert('Product added successfully!');
-            
-            // Reset form
-            setName('');
-            setPrice('');
-            setStock('');
-            setDescription('');
-            setDetails('');
-            setSpecs('');
-            setImage([]);
-            setCurrentImage(null);
+        const { data: detailsData, error: detailsError } = await supabase
+            .from('product_details') 
+            .insert([
+                { 
+                    id: data[0].id,
+                    description: productDesc.description,
+                    detail: productDesc.details,
+                    specs: productDesc.specs
+                }
+            ]);
+        if (!productError && !detailsError) {
+            setProductData({
+                name: '',
+                price: '',
+                stock: '',
+                subcategory: ''
+            });
+            setProductDesc({
+                description: '',
+                details: '',
+                specs: ''
+            });
             setSelectedCategory(null);
             setSelectedSubcategory(null);
-            
-        } catch (error) {
-            console.error('Unexpected error:', error);
-            alert('An unexpected error occurred');
         }
+        setDisable(false);
     };
 
 
     return(
-        <div className='container'>
-            <div className='top-part'>
+        <div className='add-product-container'>
+            <div className='add-product-top'>
                 <div className='picture-container'>
                     <div className='picture-bar'>
                         <label style={{ cursor: 'pointer' }}>
@@ -130,73 +147,60 @@ function AddProduct() {
                     <div className='picture-area'>
                         <img src={currentImage} className='main-picture'/>
                     </div>
+                    <div className='delete-picture'>
+                        <img src={deleteImage} alt="Delete" />
+                    </div>
                 </div>
-                <div className="info-container">
+                <div className="add-info-container">
                     <form className='info-form'>
                         <div className='info-select'>
-                            <input type="text" placeholder="Product Name" className='name' required 
-                            onChange={(e) => setName(e.target.value)} />
-                            <input type="number" placeholder="Price" className='price' required 
-                            onChange={(e) => setPrice(e.target.value)} />
-                            <input type="number" placeholder="Stock" className='stock' required 
-                            onChange={(e) => setStock(e.target.value)} />
+                            <input type="text" placeholder="Product Name" className='name' required value={productData.name}
+                            onChange={(e) => setProductData({ ...productData, name: e.target.value })} />
+                            <input type="number" placeholder="Price" className='price' required value={productData.price}
+                            onChange={(e) => setProductData({ ...productData, price: e.target.value })} />
+                            <input type="number" placeholder="Stock" className='stock' required value={productData.stock}
+                            onChange={(e) => setProductData({ ...productData, stock: e.target.value })} />
                         </div>
                         <div className='info-select'>
-                            <select required defaultValue="">
-                                <option value="">
-                                    Select Category
-                                </option>
-                                {categories.map((category) => (
-                                    <option key={category.id} value={category.id}
-                                    onClick={() => setSelectedCategory(category.id)}>
-                                        {category.name}
-                                    </option>
-                                ))}
-                            </select>
-                            <select required defaultValue="">
-                                <option value="">
-                                    Select Subcategory
-                                </option>
-                                {subcategories.map((subcategory) => (
-                                    <option key={subcategory.id} value={subcategory.id}
-                                    onClick={() => setSelectedSubcategory(subcategory.id)}>
-                                        {subcategory.name}
-                                    </option>
-                                ))}
-                            </select>
+                            {infoSelect(categories)}
+                            {infoSelect(subcategories)}
                         </div>
-                        <textarea name="description" id="description" placeholder="Product Description" required
-                        onChange={(e) => setDescription(e.target.value)}></textarea>
-                        <button type="submit" className='submit-btn' onClick={handleSubmit}>Add Product</button>
+                        <textarea name="description" id="description" placeholder="Product Description" required value={productDesc.description}
+                        onChange={(e) => setProductDesc({ ...productDesc, description: e.target.value })}></textarea>
+                        <button type="submit" className='submit-btn' onClick={handleSubmit} disabled={disable}>Add Product</button>
                     </form>
                 </div>
             </div>
-            <div className='details-container'>
-                <div className='tab-bar'>
-                    <div style={{ display: 'flex', gap: '10px' }}>
-                        <button className={`edit-preview${mode === 'edit' ? ' active' : ''}`} onClick={() => setMode('edit')}>Edit</button>
-                        <button className={`edit-preview${mode === 'preview' ? ' active' : ''}`} onClick={() => setMode('preview')}>Preview</button>
+            <div className='add-product-details'>
+                <div className='details-bar' style={{display: 'flex', justifyContent: 'space-between'}}>
+                    <div className='details-bar-side'>
+                        <span onClick={() => {setCurrentContent('details')}}>Details</span>
+                        <span onClick={() => {setCurrentContent('specs')}}>Specs</span>
                     </div>
-                    <span onClick={() => {setCurrentContent('details')}}>Details</span>
-                    <span onClick={() => {setCurrentContent('specs')}}>Specs</span>
+                    <div style={{ display: 'flex', gap: '10px' }}>
+                        <button className={`edit-preview${mode === 'edit' ? ' active' : ''}`} 
+                        onClick={() => setMode('edit')}>Edit</button>
+                        <button className={`edit-preview${mode === 'preview' ? ' active' : ''}`} 
+                        onClick={() => setMode('preview')}>Preview</button>
+                    </div>
                 </div>
-                <div className='tab-content'>
+                <div className='details-content'>
                     {mode === 'edit' ? (
                         currentContent === 'details' ? (
-                            <textarea name="details" id="details" placeholder="Product Details" value={details}
-                            onChange={(e) => setDetails(e.target.value)} required></textarea>
+                            <textarea name="details" id="details" placeholder="Product Details" value={productDesc.details}
+                            onChange={(e) => setProductDesc({ ...productDesc, details: e.target.value })} required></textarea>
                         ) : (
-                            <textarea name="specs" id="specs" placeholder="Product Specs" value={specs}
-                            onChange={(e) => setSpecs(e.target.value)} required></textarea>
+                            <textarea name="specs" id="specs" placeholder="Product Specs" value={productDesc.specs}
+                            onChange={(e) => setProductDesc({ ...productDesc, specs: e.target.value })} required></textarea>
                         )
                     ) : (
                         currentContent === 'details' ? (
                             <div className='markdown-preview'>
-                                <ReactMarkdown>{details}</ReactMarkdown>
+                                <ReactMarkdown>{productDesc.details}</ReactMarkdown>
                             </div>
                         ) : (
                             <div className='markdown-preview'>
-                                <ReactMarkdown>{specs}</ReactMarkdown>
+                                <ReactMarkdown>{productDesc.specs}</ReactMarkdown>
                             </div>
                         )
                     )}

@@ -1,3 +1,14 @@
+.delete-picture{
+    cursor: pointer;
+    background: white;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+.delete-picture img{
+    height: 80px;
+    width: 80px;
+}
 .info-form{
     display: flex;
     flex-direction: column;
@@ -19,6 +30,10 @@
 }
 .price, .stock{
     width: 25%;
+}
+.add-info-container{
+    background: white;
+    padding: 2px;
 }
 .info-select select{
     height:50px;
@@ -54,6 +69,11 @@ textarea{
 .submit-btn:hover {
     background-color: #ffb606;
 }
+.submit-btn:disabled {
+    background-color: #39305a;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
 
 .edit-preview{
     background-color: aliceblue;
@@ -65,4 +85,42 @@ textarea{
 .edit-preview.active{
     background-color: #2d1972;
     color: white;
+}
+
+.add-product-container {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    padding: 20px;
+}
+
+.add-product-top {
+    display: flex;
+    gap: 20px;
+    justify-content: space-evenly;
+}
+
+.add-product-details {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.details-bar-side {
+    display: flex;
+    gap: 10px;
+}
+
+.details-bar-side span {
+    cursor: pointer;
+    padding: 5px 10px;
+    border-radius: 4px;
+    transition: background-color 0.3s;
+    font-weight: 600;
+}
+.details-content{
+    display: flex;
+    gap: 10px;
+}
+.details-editor{
+    width: 50%;
 }

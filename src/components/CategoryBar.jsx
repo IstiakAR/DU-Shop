@@ -3,6 +3,7 @@ import cancelIcon from '../assets/cancel.svg';
 import sidebarIcon from '../assets/sidebar.svg';
 import { useState, useRef, useEffect } from 'react';
 import { fetchCategories, fetchSubcategories } from '../fetch';
+import { useNavigate } from 'react-router-dom';
 
 function CategoryBar() {
     const [categories, setCategories] = useState([]);
@@ -10,6 +11,7 @@ function CategoryBar() {
     const [selectedCategory, setSelectedCategory] = useState();
     const [isOpen, setIsOpen] = useState(false);
     const iconRef = useRef(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         fetchCategories().then(setCategories).catch(console.error);
@@ -27,6 +29,11 @@ function CategoryBar() {
 
     const handleCategoryClick = (categoryId) => {
         setSelectedCategory(categoryId);
+    };
+
+    const handleSubcategoryClick = (subcategoryId) => {
+        navigate(`/shop/${subcategoryId}`);
+        setIsOpen(false);
     };
 
     const handleBack = () => {
@@ -72,7 +79,8 @@ function CategoryBar() {
                                         {'< Back'}
                                     </div>
                                     {subcategories.map((sub) => (
-                                        <div className="sidebar-link" key={sub.id}>
+                                        <div className="sidebar-link" key={sub.id}
+                                        onClick={() => handleSubcategoryClick(sub.id)}>
                                             {sub.name}
                                         </div>
                                     ))}

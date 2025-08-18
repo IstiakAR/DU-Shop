@@ -24,6 +24,10 @@ const router = createBrowserRouter([
     element: <App><Shop /></App>,
   },
   {
+    path: "shop/:subcategoryId",
+    element: <App><Shop /></App>,
+  },
+  {
     path: "login",
     element: <Login />
   },

@@ -12,7 +12,8 @@ function ItemCard({prop}) {
             <img src={prop.image} alt={prop.name} className="item-image" />
             <h3 className="item-name">{prop.name}</h3>
             <p className="item-price">₹{prop.price}</p>
-            <button className="addCart">Add to Cart</button>
+            <p className='item-stock'>{prop.stock} left</p>
+            <button className="addCart" disabled={prop.stock === 0}>Add to Cart</button>
         </div>
     )
 }

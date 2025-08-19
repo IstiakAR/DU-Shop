@@ -13,6 +13,11 @@ import ResetPassword from './components/ResetPassword.jsx';
 import HomePage from './components/HomePage.jsx';
 import ItemDetails from './components/ItemDetails.jsx';
 import AddProduct from './components/AddProduct.jsx';
+import SellerManagement from './components/SellerManagement.jsx';
+import PendingSellers from './components/PendingSellers.jsx';
+import TotalSellers from './components/TotalSellers.jsx';
+import CategoriesPage from './components/CategoriesPage.jsx';
+import ProductPage from './components/ProductsPage.jsx';
 
 const router = createBrowserRouter([
   {
@@ -58,6 +63,26 @@ const router = createBrowserRouter([
   {
     path: "add-product",
     element: <App><AddProduct /></App>
+  },
+  {
+    path: "admin/sellers",
+    element: <App><SellerManagement /></App>
+  },
+  {
+    path: "/admin/sellers/pending",
+    element: <App><PendingSellers /></App>
+  },
+  {
+    path: "/admin/sellers/total",
+    element: <App><TotalSellers /></App>
+  },
+  {
+    path: "/admin/categories",
+    element: <App><CategoriesPage/></App>
+  },
+  {
+    path: "/admin/products",
+    element: <App><ProductPage/></App>
   }
 ]);
 

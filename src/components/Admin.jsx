@@ -1,11 +1,9 @@
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom"; // import useNavigate
+import { useNavigate } from "react-router-dom";
 import "../styles/Admin.css";
 
 function Admin() {
-    const navigate = useNavigate(); // initialize navigate
-
-    // Admin check code can be uncommented later if needed
+    const navigate = useNavigate();
 
     return (
         <div style={{ height: "85vh", width: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>

@@ -7,19 +7,16 @@ function CategoriesPage() {
   const [subcategories, setSubcategories] = useState([""]);
   const [loading, setLoading] = useState(false);
 
-  // Add another subcategory input
   const addSubcategoryField = () => {
     setSubcategories([...subcategories, ""]);
   };
 
-  // Handle subcategory text change
   const handleSubcategoryChange = (index, value) => {
     const updated = [...subcategories];
     updated[index] = value;
     setSubcategories(updated);
   };
 
-  // Save category + subcategories
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!categoryName.trim()) {
@@ -30,23 +27,32 @@ function CategoriesPage() {
     setLoading(true);
 
     try {
-      // Insert category first
-      const { data: categoryData, error: categoryError } = await supabase
+      const { data: existingCategory, error: fetchError } = await supabase
         .from("category")
-        .insert([{ name: categoryName }])
         .select("id")
+        .eq("name", categoryName)
         .single();
 
-      if (categoryError) throw categoryError;
+      let categoryId;
+      if (fetchError && fetchError.code !== 'PGRST116') throw fetchError;
 
-      const categoryId = categoryData.id;
+      if (existingCategory) {
+        categoryId = existingCategory.id;
+      } else {
+        const { data: newCategory, error: addError } = await supabase
+          .from("category")
+          .insert([{ name: categoryName }])
+          .select("id")
+          .single();
+        if (addError) throw addError;
+        categoryId = newCategory.id;
+      }
 
-      // Insert subcategories if provided
       const validSubs = subcategories.filter((s) => s.trim() !== "");
       if (validSubs.length > 0) {
         const subRows = validSubs.map((name) => ({
           name,
-          category_id: categoryId,
+          cat_id: categoryId,
         }));
 
         const { error: subError } = await supabase
@@ -56,14 +62,13 @@ function CategoriesPage() {
         if (subError) throw subError;
       }
 
-      alert("Category and subcategories added successfully!");
+      alert(existingCategory ? "Subcategories added successfully!" : "Category and subcategories added successfully!");
 
-      // Reset form
       setCategoryName("");
       setSubcategories([""]);
     } catch (err) {
       console.error("Error adding category:", err.message);
-      alert("Failed to add category. See console for details.");
+      alert("Failed to add category or subcategory. See console for details.");
     } finally {
       setLoading(false);
     }

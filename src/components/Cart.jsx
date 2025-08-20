@@ -4,17 +4,21 @@ import closeIcon from '../assets/exit.svg';
 import { useState, useEffect } from 'react';
 import { getUserID } from '../fetch';
 import supabase from '../supabase';
+import { useNavigate } from 'react-router-dom';
 
 function Cart({handleCart}){
     const [cartItems, setCartItems] = useState([]);
     const [refreshTrigger, setRefreshTrigger] = useState(0);
     const [cartTotal, setCartTotal] = useState(0);
+    const navigate = useNavigate();
     
     useEffect(() => {
         fetchCartItems();
+        const interval = setInterval(fetchCartItems, 2000);
+        return () => clearInterval(interval);
     }, [refreshTrigger]);
 
-    const fetchCartItems = async () => {            
+    const fetchCartItems = async () => {
         const userId = await getUserID();
         const {data: cartData, error: cartError} = await supabase
             .from('cart')
@@ -29,11 +33,6 @@ function Cart({handleCart}){
                     { user_id: userId, status: 'active' }
                 ])
                 .select('cart_id');
-            
-            if (createError) {
-                console.error("Error creating cart:", createError);
-                return;
-            }
             
             setCartItems([]);
             setCartTotal(0);
@@ -102,6 +101,12 @@ function Cart({handleCart}){
     const handleCartUpdate = () => {
         setRefreshTrigger(prev => prev + 1);
     };
+    
+    const handleCheckout = () => {
+        if(cartItems.length === 0) return;
+        navigate("/order", { state: { cartItems } });
+        handleCart();
+    };
 
     return (
         <div className='cart-sidebar-container'>
@@ -130,7 +135,7 @@ function Cart({handleCart}){
                 </div>
                 <hr className="cart-divider" />
                 <div className='checkout'>
-                    <button className='checkout-btn yellow-button'>Checkout</button>
+                    <button className='checkout-btn yellow-button' onClick={handleCheckout}>Checkout</button>
                 </div>
             </div>
         </div>

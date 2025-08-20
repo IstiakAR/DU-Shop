@@ -1,9 +1,6 @@
 import { getUserID } from "../fetch";
 import supabase from "../supabase";
 
-function CartCondition({ id, value }) {
-}
-
 export const addToCart = async (id, value, type='plus') => {
     const userId = await getUserID();
     let cartId;
@@ -41,9 +38,19 @@ export const addToCart = async (id, value, type='plus') => {
         if (type === 'plus') {
             newQuantity = existingItem.quantity + value;
         } else if (type === 'minus') {
-            newQuantity = Math.max(1, existingItem.quantity - value);
+            newQuantity = Math.max(0, existingItem.quantity - value);
+        } else if (type === 'set') {
+            newQuantity = value;
         }
-        
+        if(newQuantity==0){
+            const { error: deleteError } = await supabase
+                .from('cart_item')
+                .delete()
+                .eq('cart_id', cartId)
+                .eq('prod_id', id);
+            if (deleteError) throw new Error(`Delete error: ${deleteError.message}`);
+            console.log(`Removed item from cart`);
+        }
         const { error: updateError } = await supabase
             .from('cart_item')
             .update({ quantity: newQuantity })
@@ -63,5 +70,3 @@ export const addToCart = async (id, value, type='plus') => {
     
     return true;
 };
-
-export default CartCondition;

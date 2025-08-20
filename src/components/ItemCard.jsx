@@ -9,9 +9,10 @@ function ItemCard({prop}) {
         navigate(`/item/${prop.id}`);
     };
     
-    const handleCartAdd = (e) => {
+    const handleCartAdd = async (e) => {
         e.stopPropagation();
-        addToCart(prop.id, 1, 'plus');
+        await addToCart(prop.id, 1, 'plus');
+        // Optional: You could add a visual feedback that item was added to cart
     }
     
     return(

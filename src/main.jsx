@@ -18,6 +18,7 @@ import PendingSellers from './components/PendingSellers.jsx';
 import TotalSellers from './components/TotalSellers.jsx';
 import CategoriesPage from './components/CategoriesPage.jsx';
 import ProductPage from './components/ProductsPage.jsx';
+import Order from './components/Order.jsx';
 
 const router = createBrowserRouter([
   {
@@ -83,6 +84,10 @@ const router = createBrowserRouter([
   {
     path: "/admin/products",
     element: <App><ProductPage/></App>
+  },
+  {
+    path: "/order",
+    element: <App><Order /></App>
   }
 ]);
 

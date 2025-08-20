@@ -1,5 +1,5 @@
 import '../styles/CartItem.css';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { addToCart } from './CartCondition';
 
 function CartItem({ item, onCartUpdate }) {
@@ -7,7 +7,10 @@ function CartItem({ item, onCartUpdate }) {
     const [quantityNumber, setQuantity] = useState(quantity);
     const [isUpdating, setIsUpdating] = useState(false);
 
-    // Calculate the item's total price
+    useEffect(() => {
+        setQuantity(quantity);
+    }, [quantity]);
+
     const calculateTotal = () => {
         return price * quantityNumber;
     };
@@ -24,12 +27,21 @@ function CartItem({ item, onCartUpdate }) {
     };
 
     const decrementQuantity = async () => {
-        if (isUpdating || quantityNumber <= 1) return;
+        if (isUpdating) return;
         
         setIsUpdating(true);
         const newQuantity = quantityNumber - 1;
         setQuantity(newQuantity);
         await addToCart(id, 1, 'minus');
+        setIsUpdating(false);
+        onCartUpdate();
+    };
+
+    const removeItem = async () => {
+        if (isUpdating) return;
+        
+        setIsUpdating(true);
+        await addToCart(id, 0, 'set');
         setIsUpdating(false);
         onCartUpdate();
     };
@@ -53,14 +65,13 @@ function CartItem({ item, onCartUpdate }) {
                     className="qty-btn"
                     onClick={decrementQuantity}
                     aria-label="Decrease quantity"
-                    disabled={isUpdating || quantityNumber <= 1}
+                    disabled={isUpdating}
                 >–</button>
             </div>
             <button 
                 className="cart-item-remove" 
-                onClick={async () => {
-                    // Implement remove functionality
-                }}
+                onClick={removeItem}
+                disabled={isUpdating}
             >✕</button>
         </div>
     );

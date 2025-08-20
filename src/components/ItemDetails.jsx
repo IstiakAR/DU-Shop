@@ -1,109 +1,306 @@
-import '../styles/ItemDetails.css';
+import "../styles/ItemDetails.css";
+import { useEffect, useMemo, useState } from "react";
+import { useParams } from "react-router-dom";
+import supabase from "../supabase";
+import MessageBox from "./MessageBox";
 
-import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
-import supabase from '../supabase';
-
-function ItemDetails() {
-    const productID = useParams().id;
-    // Initialize currentImage to 0 (first image index)
-    const [currentImage, setCurrentImage] = useState(0);
-    const [content, setContent] = useState();
-    const [itemData, setItemData] = useState([]);
-    const [images, setImages] = useState([]);
-    const [desc, setDesc] = useState({});
-
-    useEffect(() => {
-        const fetchItem = async () => {
-            const { data, error } = await supabase
-                .from('product')
-                .select('*')
-                .eq('id', productID)
-            if(!error && data) {
-                setItemData(data);
-            }
-        }
-        fetchItem();
-    }, [productID]);
-
-    useEffect(() => {
-        if (itemData.length === 0) return;
-
-        const fetchImages = async () => {
-            const { data, error } = await supabase
-                .from('product_image')
-                .select('filepath')
-                .eq('id', itemData[0].id)
-                .order('position', { ascending: true })
-            if (!error && data) {
-                setImages(data);
-            }
-        };
-        fetchImages();
-    }, [itemData]);
-
-    useEffect(() => {
-        if (itemData.length === 0) return;
-        const fetchDesc = async () => {
-            const { data, error } = await supabase
-                .from('product_details')
-                .select('*')
-                .eq('id', itemData[0].id)
-                .single();
-            if (!error && data) {
-                setDesc(data);
-            }
-        };
-        fetchDesc();
-    }, [itemData]);
-
-    const getImageUrl = (filepath) => {
-        return `https://ursffahpdyihjraagbuz.supabase.co/storage/v1/object/public/product-image/${filepath}`;
-    };
-
-    return(
-        <div className='container'>
-            <div className='top-part'>
-                <div className='picture-container'>
-                    <div className='picture-bar'>
-                        {images && images.map((img, idx) => (
-                            <img key={idx} src={getImageUrl(img.filepath)}
-                            onClick={() => setCurrentImage(idx)} />
-                        ))}
-                    </div>
-                    <div className='picture-area'>
-                        {images.length > 0 && images[currentImage] ? (
-                            <img src={getImageUrl(images[currentImage].filepath)} alt="Item"
-                                className='main-picture'/>
-                        ) : (
-                            <span style={{color: '#888'}}>No image available</span>
-                        )}
-                    </div>
-                </div>
-                <div className='info-container'>
-                    <h2>{itemData[0]?.name}</h2>
-                    <div className="price-stock-row">
-                        <span className="price">Price: ₹{itemData[0]?.price}</span>
-                        <span className="divider"> | </span>
-                        <span className="stock">Stock: {itemData[0]?.stock}</span>
-                    </div>
-                    <p>{desc.description || "Description will be here soon."}</p>
-                </div>
-            </div>
-            <div className='details-container'>
-                <div className='tab-bar'>
-                    <span onClick={() => setContent(desc.detail || 'Details about the item will be displayed here.')}>Details</span>
-                    <span onClick={() => setContent(desc.specs || 'Specifications of the item will be displayed here.')}>Specs</span>
-                </div>
-                <div className='tab-content'>
-                    <span>{content || desc.detail}</span>
-                </div>
-            </div>
-            <div className='review-container details-container'>
-                <h2>Reviews</h2>
-            </div>
-        </div>
-    )
+function Star({ filled, onClick, size = 22 }) {
+  return (
+    <svg
+      onClick={onClick}
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      style={{ cursor: onClick ? "pointer" : "default", marginRight: 4 }}
+      fill={filled ? "#f5b50a" : "none"}
+      stroke="#f5b50a"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <polygon points="12 2 15 9 22 9 17 14 19 21 12 17 5 21 7 14 2 9 9 9" />
+    </svg>
+  );
 }
 
-export default ItemDetails;
+function StarRow({ value = 0, onChange }) {
+  return (
+    <div style={{ display: "flex", alignItems: "center" }}>
+      {[1, 2, 3, 4, 5].map((i) => (
+        <Star key={i} filled={i <= value} onClick={onChange ? () => onChange(i) : undefined} />
+      ))}
+    </div>
+  );
+}
+
+export default function ItemDetails() {
+  const { id: productID } = useParams();
+
+  const [currentImage, setCurrentImage] = useState(0);
+  const [tabContent, setTabContent] = useState("");
+  const [product, setProduct] = useState(null);
+  const [images, setImages] = useState([]);
+  const [details, setDetails] = useState({});
+  const [reviews, setReviews] = useState([]);
+  const [user, setUser] = useState(null);
+
+  // form state for new review
+  const [newReview, setNewReview] = useState("");
+  const [rating, setRating] = useState(5);
+  const [submittingReview, setSubmittingReview] = useState(false);
+
+  const storageBase =
+    "https://ursffahpdyihjraagbuz.supabase.co/storage/v1/object/public/product-image";
+
+  const getImageUrl = (filepath) => `${storageBase}/${filepath}`;
+
+  // Logged-in user
+  useEffect(() => {
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      if (data?.user) setUser(data.user);
+    })();
+  }, []);
+
+  // Product (incl. seller_id)
+  useEffect(() => {
+    if (!productID) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("product")
+        .select("id, name, price, stock, seller_id")
+        .eq("id", productID)
+        .single();
+
+      if (!error && data) {
+        setProduct(data);
+      }
+    })();
+  }, [productID]);
+
+  // Images
+  useEffect(() => {
+    if (!product?.id) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("product_image")
+        .select("filepath, position")
+        .eq("id", product.id)
+        .order("position", { ascending: true });
+
+      if (!error && data) setImages(data);
+    })();
+  }, [product?.id]);
+
+  // Details/specs
+  useEffect(() => {
+    if (!product?.id) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("product_details")
+        .select("description, detail, specs")
+        .eq("id", product.id)
+        .single();
+
+      if (!error && data) {
+        setDetails(data);
+        setTabContent(data?.detail || "");
+      }
+    })();
+  }, [product?.id]);
+
+  // Reviews (join to user for name/email)
+  useEffect(() => {
+    if (!productID) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from("review")
+        .select(
+          `
+          comment,
+          rating,
+          created_at,
+          user:user_id(id, name, email)
+        `
+        )
+        .eq("prod_id", productID)
+        .order("created_at", { ascending: false });
+
+      if (!error && data) setReviews(data);
+    })();
+  }, [productID]);
+
+  const avgRating = useMemo(() => {
+    if (!reviews.length) return 0;
+    const sum = reviews.reduce((acc, r) => acc + (r.rating || 0), 0);
+    return Math.round((sum / reviews.length) * 10) / 10;
+  }, [reviews]);
+
+  async function handleAddReview() {
+    if (!user) {
+      alert("You must be logged in to leave a review.");
+      return;
+    }
+    if (!newReview.trim()) {
+      alert("Please write something before submitting.");
+      return;
+    }
+    if (!rating) {
+      alert("Please choose a rating.");
+      return;
+    }
+    setSubmittingReview(true);
+    const { error } = await supabase.from("review").insert([
+      {
+        prod_id: productID,
+        user_id: user.id,
+        comment: newReview.trim(),
+        rating: rating,
+      },
+    ]);
+    setSubmittingReview(false);
+
+    if (error) {
+      console.error("Error adding review:", error.message);
+      alert(error.message);
+      return;
+    }
+
+    // optimistic UI: prepend new review
+    setReviews((prev) => [
+      {
+        comment: newReview.trim(),
+        rating,
+        created_at: new Date().toISOString(),
+        user: { id: user.id, name: user.user_metadata?.name || null, email: user.email },
+      },
+      ...prev,
+    ]);
+    setNewReview("");
+    setRating(5);
+  }
+
+  return (
+    <div className="container">
+      {/* Top area: images + info */}
+      <div className="top-part">
+        <div className="picture-container">
+          <div className="picture-bar">
+            {images.map((img, idx) => (
+              <img
+                key={`${img.filepath}-${idx}`}
+                src={getImageUrl(img.filepath)}
+                alt={`thumb-${idx}`}
+                onClick={() => setCurrentImage(idx)}
+              />
+            ))}
+          </div>
+
+          <div className="picture-area">
+            {images.length > 0 ? (
+              <img
+                src={getImageUrl(images[currentImage]?.filepath)}
+                alt={product?.name || "Item"}
+                className="main-picture"
+              />
+            ) : (
+              <span style={{ color: "#888" }}>No image available</span>
+            )}
+          </div>
+        </div>
+
+        <div className="info-container">
+          <h2>{product?.name || "Item"}</h2>
+
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <StarRow value={Math.round(avgRating)} />
+            <span style={{ color: "#555" }}>
+              {avgRating ? `${avgRating}/5` : "No ratings yet"}
+              {reviews.length ? ` • ${reviews.length} review${reviews.length > 1 ? "s" : ""}` : ""}
+            </span>
+          </div>
+
+          <div className="price-stock-row">
+            <span className="price">Price: ₹{product?.price ?? "-"}</span>
+            <span className="divider"> | </span>
+            <span className="stock">Stock: {product?.stock ?? "-"}</span>
+          </div>
+
+          <p style={{ marginTop: 8 }}>{details?.description || "Description will be here soon."}</p>
+
+          {/* Message Seller */}
+          {product?.seller_id && user ? (
+            <MessageBox
+              productId={product.id}
+              sellerId={product.seller_id}
+              user={user}
+              buttonLabel="Message Seller"
+            />
+          ) : (
+            <p style={{ marginTop: 10, color: "#666" }}>
+              {user ? "Seller not found for this product." : "Login to message the seller."}
+            </p>
+          )}
+        </div>
+      </div>
+
+      {/* Details / Specs */}
+      <div className="details-container">
+        <div className="tab-bar">
+          <span onClick={() => setTabContent(details.detail || "No details available.")}>Details</span>
+          <span onClick={() => setTabContent(details.specs || "No specifications available.")}>Specs</span>
+        </div>
+        <div className="tab-content">
+          <span>{tabContent}</span>
+        </div>
+      </div>
+
+      {/* Reviews */}
+      <div className="review-container details-container">
+        <h2>Reviews</h2>
+
+        {user ? (
+          <div className="add-review">
+            <div style={{ marginBottom: 8 }}>
+              <span style={{ marginRight: 8, fontWeight: 600 }}>Your rating:</span>
+              <StarRow value={rating} onChange={setRating} />
+            </div>
+            <textarea
+              value={newReview}
+              onChange={(e) => setNewReview(e.target.value)}
+              placeholder="Share your experience…"
+              rows={4}
+            />
+            <button onClick={handleAddReview} disabled={submittingReview}>
+              {submittingReview ? "Submitting…" : "Submit Review"}
+            </button>
+          </div>
+        ) : (
+          <p>You must be logged in to leave a review.</p>
+        )}
+
+        <div className="reviews-list">
+          {reviews.length ? (
+            reviews.map((r, idx) => {
+              const displayName = r.user?.name || r.user?.email || r.user?.id?.slice(0, 6) || "User";
+              return (
+                <div key={idx} className="review-item">
+                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                    <StarRow value={r.rating || 0} />
+                    <strong>{displayName}</strong>
+                    <small style={{ color: "#777" }}>
+                      {new Date(r.created_at).toLocaleString()}
+                    </small>
+                  </div>
+                  <p style={{ whiteSpace: "pre-wrap" }}>{r.comment}</p>
+                </div>
+              );
+            })
+          ) : (
+            <p>No reviews yet.</p>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}

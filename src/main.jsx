@@ -19,6 +19,7 @@ import TotalSellers from './components/TotalSellers.jsx';
 import CategoriesPage from './components/CategoriesPage.jsx';
 import ProductPage from './components/ProductsPage.jsx';
 import Order from './components/Order.jsx';
+import SellerMessenger from './components/SellerMessenger.jsx';
 
 const router = createBrowserRouter([
   {
@@ -88,6 +89,8 @@ const router = createBrowserRouter([
   {
     path: "/order",
     element: <App><Order /></App>
+    path: "/admin/sellermessenger",
+    element: <App><SellerMessenger/></App>
   }
 ]);
 

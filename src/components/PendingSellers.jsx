@@ -93,13 +93,14 @@ function PendingSellers() {
                 <button
                   className="submit-btn"
                   onClick={() => confirmSeller(seller.id)}
-                  style={{ marginRight: "8px" }}
+                  style={{ marginTop: "15px", padding: "8px 16px" }}
                 >
                   Confirm
                 </button>
                 <button
                   className="submit-btn"
                   onClick={() => cancelSeller(seller.id)}
+                  style={{ marginTop: "15px", padding: "8px 16px" }}
                 >
                   Cancel
                 </button>

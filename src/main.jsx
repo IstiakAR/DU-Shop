@@ -89,6 +89,8 @@ const router = createBrowserRouter([
   {
     path: "/order",
     element: <App><Order /></App>
+  },
+  {
     path: "/admin/sellermessenger",
     element: <App><SellerMessenger/></App>
   }

@@ -1,14 +1,24 @@
 import { useEffect, useState, useRef } from "react";
 import supabase from "../supabase";
+import "../styles/Messenger.css";
+import { getUserID } from "../fetch";
 
-export default function SellerInbox({ sellerId }) {
-  const [users, setUsers] = useState([]); // [ {id, name}, ... ]
+export default function Messenger() {
+  const [users, setUsers] = useState([]);
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
   const listRef = useRef(null);
+  const [sellerId, setSellerId] = useState(null);
 
-  // Fetch distinct users who have messaged the seller
+  useEffect(() => {
+    const fetchSellerId = async () => {
+      const id = await getUserID();
+      setSellerId(id);
+    };
+    fetchSellerId();
+  }, []);
+
   useEffect(() => {
     if (!sellerId) return;
 
@@ -18,14 +28,10 @@ export default function SellerInbox({ sellerId }) {
         .select(`
           sender_id,
           receiver_id,
-          sender:user(id, name)
+          sender:user!sender_id(id, name),
+          receiver:user!receiver_id(id, name)
         `)
         .or(`sender_id.eq.${sellerId},receiver_id.eq.${sellerId}`);
-
-      if (error) {
-        console.error("Fetch users error:", error.message);
-        return;
-      }
 
       const userMap = new Map();
       data.forEach((msg) => {
@@ -39,36 +45,39 @@ export default function SellerInbox({ sellerId }) {
     fetchUsers();
   }, [sellerId]);
 
-  // Fetch messages with selected user
   useEffect(() => {
     if (!selectedUser) return;
 
     const fetchMessages = async () => {
-      const { data, error } = await supabase
+      console.log("Hello")
+      const { data: outgoingMessages, error: outgoingError } = await supabase
         .from("messenger")
         .select("*")
-        .or(
-          `and(sender_id.eq.${sellerId},receiver_id.eq.${selectedUser}),
-           and(sender_id.eq.${selectedUser},receiver_id.eq.${sellerId})`
-        )
+        .eq("sender_id", sellerId)
+        .eq("receiver_id", selectedUser)
+        .order("created_at", { ascending: true });
+      const { data: incomingMessages, error: incomingError } = await supabase
+        .from("messenger")
+        .select("*")
+        .eq("sender_id", selectedUser)
+        .eq("receiver_id", sellerId)
         .order("created_at", { ascending: true });
 
-      if (error) {
-        console.error("Fetch messages error:", error.message);
-      } else {
-        setMessages(data || []);
-      }
+      const data = [...outgoingMessages, ...incomingMessages].sort((a, b) =>
+        new Date(a.created_at) - new Date(b.created_at)
+      );
+      setMessages(data);
     };
 
     fetchMessages();
   }, [selectedUser, sellerId]);
 
-  // Real-time subscription
+  // Real-time sync
   useEffect(() => {
     if (!sellerId) return;
 
     const channel = supabase
-      .channel("seller-messenger-" + sellerId)
+      .channel("messenger-" + sellerId)
       .on(
         "postgres_changes",
         {
@@ -82,7 +91,6 @@ export default function SellerInbox({ sellerId }) {
             m.receiver_id === sellerId || m.sender_id === sellerId;
           if (!isRelevant) return;
 
-          // Update messages if chat is open with that user
           if (
             selectedUser &&
             (m.sender_id === selectedUser || m.receiver_id === selectedUser)
@@ -90,7 +98,6 @@ export default function SellerInbox({ sellerId }) {
             setMessages((prev) => [...prev, m]);
           }
 
-          // Update users list
           const otherUserId =
             m.sender_id !== sellerId ? m.sender_id : m.receiver_id;
           setUsers((prev) => {
@@ -109,7 +116,6 @@ export default function SellerInbox({ sellerId }) {
     if (listRef.current) listRef.current.scrollTop = listRef.current.scrollHeight;
   }, [messages]);
 
-  // Send message
   const sendMessage = async () => {
     if (!newMessage.trim() || !selectedUser) return;
 
@@ -128,43 +134,19 @@ export default function SellerInbox({ sellerId }) {
       sender_id: sellerId,
       receiver_id: selectedUser,
       message: tempMessage.message
+
     }]);
-
-    if (error) console.error("Send message error:", error.message);
-  };
-
-  const styles = {
-    container: { display: "flex", height: "90vh", border: "1px solid #ccc", fontFamily: "Arial, sans-serif" },
-    usersList: { width: "30%", borderRight: "1px solid #ccc", padding: 10, overflowY: "auto", background: "#f7f7f7" },
-    userItem: (selected) => ({ padding: 10, cursor: "pointer", background: selected ? "#ddd" : "transparent", borderRadius: 5, marginBottom: 5 }),
-    chatWindow: { flex: 1, display: "flex", flexDirection: "column" },
-    chatHeader: { borderBottom: "1px solid #ccc", padding: 10, fontWeight: "bold" },
-    messageList: { flex: 1, padding: 10, overflowY: "auto", background: "#e5ddd5" },
-    messageBubble: (mine) => ({
-      display: "inline-block",
-      padding: "8px 12px",
-      borderRadius: 15,
-      background: mine ? "#dcf8c6" : "#fff",
-      marginBottom: 5,
-      maxWidth: "70%",
-      wordBreak: "break-word"
-    }),
-    messageInfo: { fontSize: 11, color: "#555", marginTop: 2 },
-    inputContainer: { display: "flex", borderTop: "1px solid #ccc", padding: 10 },
-    input: { flex: 1, padding: 8, borderRadius: 20, border: "1px solid #ccc", outline: "none" },
-    sendButton: { marginLeft: 10, padding: "8px 16px", borderRadius: 20, border: "none", background: "#128c7e", color: "#fff", cursor: "pointer" }
   };
 
   return (
-    <div style={styles.container}>
-      {/* Users List */}
-      <div style={styles.usersList}>
+    <div className="messenger-container">
+      <div className="users-list">
         <h3>Users</h3>
         {users.length === 0 && <p>No messages yet</p>}
         {users.map(u => (
           <div
             key={u.id}
-            style={styles.userItem(selectedUser === u.id)}
+            className={`user-item ${selectedUser === u.id ? 'selected' : ''}`}
             onClick={() => setSelectedUser(u.id)}
           >
             {u.name}
@@ -172,26 +154,21 @@ export default function SellerInbox({ sellerId }) {
         ))}
       </div>
 
-      {/* Chat Window */}
-      <div style={styles.chatWindow}>
+      <div className="chat-window">
         {!selectedUser ? (
-          <div style={{ padding: 20 }}>Select a user to chat</div>
+          <div className="select-user-prompt">Select a user to chat</div>
         ) : (
           <>
-            <div style={styles.chatHeader}>
-              Chat with {users.find(u => u.id === selectedUser)?.name || selectedUser}
-            </div>
-
-            <div style={styles.messageList} ref={listRef}>
+            <div className="message-list" ref={listRef}>
               {messages.length === 0 ? (
-                <p>Say hello to start the conversation.</p>
+                <p className="empty-chat-message">Say hello to start the conversation.</p>
               ) : (
                 messages.map(m => {
                   const mine = m.sender_id === sellerId;
                   return (
-                    <div key={m.id} style={{ textAlign: mine ? "right" : "left" }}>
-                      <div style={styles.messageBubble(mine)}>{m.message}</div>
-                      <div style={styles.messageInfo}>
+                    <div key={m.id} className={`message-container-${mine ? 'mine' : 'other'}`}>
+                      <div className={`message-bubble ${mine ? 'mine' : 'other'}`}>{m.message}</div>
+                      <div className="message-info">
                         {new Date(m.created_at).toLocaleTimeString()}
                       </div>
                     </div>
@@ -200,16 +177,16 @@ export default function SellerInbox({ sellerId }) {
               )}
             </div>
 
-            <div style={styles.inputContainer}>
+            <div className="input-container">
               <input
-                style={styles.input}
+                className="message-input"
                 type="text"
                 placeholder="Type a message..."
                 value={newMessage}
                 onChange={e => setNewMessage(e.target.value)}
                 onKeyDown={e => e.key === "Enter" && sendMessage()}
               />
-              <button style={styles.sendButton} onClick={sendMessage}>Send</button>
+              <button className="send-button" onClick={sendMessage}>Send</button>
             </div>
           </>
         )}

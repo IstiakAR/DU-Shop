@@ -1,19 +1,12 @@
 import { useNavigate } from "react-router-dom";
 import "../styles/Admin.css";
+import "../styles/SellerManagement.css";
 
 function SellerManagement() {
   const navigate = useNavigate();
 
   return (
-    <div
-      style={{
-        height: "85vh",
-        width: "100%",
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <div className="management-container">
       <div className="admin-container">
         <h2 className="admin-title">Seller Management</h2>
         <div className="admin-grid">

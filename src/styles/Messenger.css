@@ -1,0 +1,113 @@
+.messenger-container {
+  display: flex;
+  border: 1px solid #ccc;
+  font-family: Arial, sans-serif;
+  height: 90vh;
+}
+
+.users-list {
+  width: 30%;
+  border-right: 1px solid #ccc;
+  padding: 10px;
+  overflow-y: auto;
+  background: #f7f7f7;
+}
+
+.user-item {
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.user-item.selected {
+  background: #ddd;
+}
+
+.user-item:not(.selected) {
+  background: transparent;
+}
+
+.chat-window {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-header {
+  border-bottom: 1px solid #ccc;
+  padding: 10px;
+  font-weight: bold;
+}
+
+.message-list {
+  flex: 1;
+  padding: 10px;
+  overflow-y: auto;
+  background: #e5ddd5;
+  padding:15px;
+
+}
+
+.message-bubble {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 15px;
+  margin-bottom: 5px;
+  max-width: 70%;
+  word-break: break-word;
+}
+
+.message-bubble.mine {
+  background: #dcf8c6;
+}
+
+.message-bubble.other {
+  background: #fff;
+}
+
+.message-container-mine {
+  text-align: right;
+}
+
+.message-container-other {
+  text-align: left;
+}
+
+.message-info {
+  font-size: 11px;
+  color: #555;
+  margin-top: 2px;
+}
+
+.input-container {
+  display: flex;
+  border-top: 1px solid #ccc;
+  padding: 10px;
+}
+
+.message-input {
+  flex: 1;
+  padding: 8px;
+  border-radius: 20px;
+  border: 1px solid #ccc;
+  outline: none;
+}
+
+.send-button {
+  margin-left: 10px;
+  padding: 8px 16px;
+  border-radius: 20px;
+  border: none;
+  background: #128c7e;
+  color: #fff;
+  cursor: pointer;
+}
+
+.select-user-prompt {
+  padding: 20px;
+}
+
+.empty-chat-message {
+  padding: 10px;
+}

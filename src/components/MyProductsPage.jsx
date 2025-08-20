@@ -14,7 +14,6 @@ function ProductPage() {
       setLoading(true);
       const userId = await getUserID();
 
-      // Get sellerId linked to userId
       const { data: sellerData, error: sellerError } = await supabase
         .from("seller")
         .select("id")
@@ -22,12 +21,10 @@ function ProductPage() {
         .single();
 
       if (sellerError || !sellerData) {
-        console.error("Seller not found", sellerError);
         setLoading(false);
         return;
       }
 
-      // Fetch products for that seller
       const { data: productData, error: productError } = await supabase
         .from("product")
         .select("id, name, price, stock")
@@ -45,7 +42,6 @@ function ProductPage() {
     fetchProducts();
   }, []);
 
-  // Handle search
   useEffect(() => {
     const filtered = products.filter((p) =>
       p.name.toLowerCase().includes(search.toLowerCase())

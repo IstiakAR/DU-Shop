@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import supabase from "../supabase";
+import "../styles/Seller.css";
 
 function Seller() {
   const [isSeller, setIsSeller] = useState(false);
@@ -54,61 +55,14 @@ function Seller() {
 
   if (loading) return <h3>Loading...</h3>;
 
-  const containerStyle = {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: "85vh",
-    padding: "20px",
-    textAlign: "center",
-  };
-
-  const statsStyle = {
-    display: "flex",
-    gap: "32px",
-    marginBottom: "32px",
-    fontSize: "18px",
-  };
-
-  const buttonContainerStyle = {
-    display: "flex",
-    gap: "16px",
-    flexWrap: "wrap",
-    justifyContent: "center",
-  };
-
-  const buttonStyle = {
-    padding: "10px 20px",
-    fontSize: "16px",
-    cursor: "pointer",
-    border: "none",
-    borderRadius: "6px",
-    backgroundColor: "#3b82f6",
-    color: "white",
-  };
-
-  const disabledButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: "grey",
-    cursor: "not-allowed",
-  };
-
-  const formContainerStyle = {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: "16px",
-  };
-
   if (!isSeller) {
     return (
-      <div style={containerStyle}>
-        <div style={formContainerStyle}>
+      <div className="seller-container">
+        <div className="form-container">
           <h2>You are not a seller</h2>
           <p>Click the button below to apply for becoming a seller.</p>
           <button
-            style={applied ? disabledButtonStyle : buttonStyle}
+            className={`seller-button ${applied ? 'disabled' : ''}`}
             onClick={handleApply}
             disabled={applied}
           >
@@ -121,19 +75,19 @@ function Seller() {
   }
 
   return (
-    <div style={containerStyle}>
+    <div className="seller-container">
       <h2>Seller Profile</h2>
       <p>Welcome, {user?.email || "Seller"}!</p>
 
-      <div style={statsStyle}>
+      <div className="seller-stats">
         <p>⭐ Rating: <strong>{stats.rating}</strong></p>
         <p>📦 Total Sales: <strong>{stats.totalSales}</strong></p>
       </div>
 
-      <div style={buttonContainerStyle}>
-        <button style={buttonStyle} onClick={() => navigate("/admin/products")}>Products</button>
-        <button style={buttonStyle} onClick={() => navigate("/admin/sellermessenger")}>💬 Messages</button>
-        <button style={buttonStyle}>📊 Sales Report</button>
+      <div className="button-container">
+        <button className="seller-button" onClick={() => navigate("/seller/products")}>Products</button>
+        <button className="seller-button" onClick={() => navigate("/messenger")}>Messages</button>
+        <button className="seller-button">Sales Report</button>
       </div>
     </div>
   );

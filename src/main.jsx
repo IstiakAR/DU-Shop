@@ -17,9 +17,9 @@ import SellerManagement from './components/SellerManagement.jsx';
 import PendingSellers from './components/PendingSellers.jsx';
 import TotalSellers from './components/TotalSellers.jsx';
 import CategoriesPage from './components/CategoriesPage.jsx';
-import ProductPage from './components/ProductsPage.jsx';
+import ProductPage from './components/MyProductsPage.jsx';
 import Order from './components/Order.jsx';
-import SellerMessenger from './components/SellerMessenger.jsx';
+import Messenger from './components/Messenger.jsx';
 
 const router = createBrowserRouter([
   {
@@ -83,7 +83,7 @@ const router = createBrowserRouter([
     element: <App><CategoriesPage/></App>
   },
   {
-    path: "/admin/products",
+    path: "/seller/products",
     element: <App><ProductPage/></App>
   },
   {
@@ -91,8 +91,8 @@ const router = createBrowserRouter([
     element: <App><Order /></App>
   },
   {
-    path: "/admin/sellermessenger",
-    element: <App><SellerMessenger/></App>
+    path: "/messenger",
+    element: <App><Messenger/></App>
   }
 ]);
 

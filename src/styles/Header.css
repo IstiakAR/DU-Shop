@@ -60,7 +60,7 @@
 .profile-dropdown{
     background-color: #fafafa;
     height: 125px;
-    width: 300px;
+    width: 100%;
     border-radius: 10px;
     display: flex;
     flex-direction: column;

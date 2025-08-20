@@ -7,6 +7,8 @@ import rightArrow from '../assets/rightArrow.svg';
 function Profile() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
+    const [isAdmin, setIsAdmin] = useState(false);
+
     useEffect(() => {
         const userInfo = async () => {
             const { data: userData, error: userError } = await supabase.auth.getUser();
@@ -15,16 +17,26 @@ function Profile() {
                 setUser(null);
                 return;
             }
-            const { data, error } = await 
-            supabase
-            .from('user')
-            .select('*')
-            .eq('id', userData.user.id);
-            if (!error) {
-                console.log("User Info:", data[0]);
-                setUser(data[0]);
+
+            const { data, error } = await supabase
+                .from('user')
+                .select('*')
+                .eq('id', userData.user.id)
+                .single();
+            if (!error && data) {
+                setUser(data);
             }
+
+            // Check if user is admin
+            const { data: adminData, error: adminError } = await supabase
+                .from('admin')
+                .select('id')
+                .eq('id', userData.user.id)
+                .single();
+
+            if (!adminError && adminData) setIsAdmin(true);
         };
+
         userInfo();
     }, []);
 
@@ -54,15 +66,21 @@ function Profile() {
                         <img src={rightArrow} />
                     </span>
                 </div>
-                <div className="profile-divider" />
-                <div className="profile-link-row" onClick={() => navigate('/admin')}>
-                    <span>Admin dashboard</span>
-                    <span className="profile-arrow">
-                        <img src={rightArrow} />
-                    </span>
-                </div>
+
+                {isAdmin && (
+                    <>
+                        <div className="profile-divider" />
+                        <div className="profile-link-row" onClick={() => navigate('/admin')}>
+                            <span>Admin dashboard</span>
+                            <span className="profile-arrow">
+                                <img src={rightArrow} />
+                            </span>
+                        </div>
+                    </>
+                )}
             </div>
         </div>
     );
 }
+
 export default Profile;

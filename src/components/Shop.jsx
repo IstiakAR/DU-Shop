@@ -8,13 +8,20 @@ function Shop(props){
     const { subcategoryId } = useParams();
     const [itemData, setItemData] = useState([]); 
     const [images, setImages] = useState({});
+    
     useEffect(() => {
         const fetchItems = async () => {
-            const { data, error } = await supabase
+            let query = supabase
                 .from('product')
                 .select('*')
-                .eq('sub_id', subcategoryId)
-                .eq('type', 'product')
+                .eq('type', 'product');
+                
+            if(subcategoryId) {
+                query = query.eq('sub_id', subcategoryId);
+            }
+            
+            const { data, error } = await query;
+            
             if(!error && data) {
                 setItemData(data);
             }
@@ -48,22 +55,18 @@ function Shop(props){
     return(
         <div className='shop-container'>
             <div className='item-card-container'>
-                {itemData.length > 0 ? (
-                    itemData.map((item, index) => (
-                        <ItemCard 
-                            key={item.id || index} 
-                            prop={{
-                                name: item.name, 
-                                price: item.price, 
-                                image: `https://ursffahpdyihjraagbuz.supabase.co/storage/v1/object/public/product-image/${images[item.id]}` || "/DU-Shop.png",
-                                id: item.id,
-                                stock: item.stock
-                            }} 
-                        />
-                    ))
-                ) : (
-                    <div>No products found</div>
-                )}
+                {itemData.map((item, index) => (
+                    <ItemCard 
+                        key={item.id || index} 
+                        prop={{
+                            name: item.name, 
+                            price: item.price, 
+                            image: `https://ursffahpdyihjraagbuz.supabase.co/storage/v1/object/public/product-image/${images[item.id]}` || "/DU-Shop.png",
+                            id: item.id,
+                            stock: item.stock
+                        }}
+                    />
+                ))}
             </div>
         </div>
     )

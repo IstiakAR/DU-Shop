@@ -1,0 +1,46 @@
+.message-btn {
+  margin-top: 8px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: none;
+  background: #222;
+  color: #fff;
+  cursor: pointer;
+}
+.message-btn:disabled { opacity: .5; cursor: not-allowed; }
+
+.message-box {
+  position: fixed;
+  bottom: 16px;
+  right: 16px;
+  width: 320px;
+  background: #fff;
+  border: 1px solid #e6e6e6;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.12);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 9999;
+}
+
+.message-header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 12px; background: #f7f7f7; border-bottom: 1px solid #eee;
+}
+.message-header h4 { margin: 0; font-size: 14px; }
+.message-header button { border: none; background: transparent; font-size: 18px; cursor: pointer; }
+
+.message-list {
+  padding: 10px; height: 260px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px;
+}
+
+.message { max-width: 80%; padding: 8px 10px; border-radius: 12px; display: inline-flex; flex-direction: column; }
+.message.sent { align-self: flex-end; background: #dcf8c6; }
+.message.received { align-self: flex-start; background: #f1f1f1; }
+.message small { color: #777; margin-top: 4px; font-size: 11px; }
+.message-empty { text-align: center; color: #888; margin-top: 20px; }
+
+.message-input { display: flex; gap: 6px; padding: 8px; border-top: 1px solid #eee; }
+.message-input input { flex: 1; padding: 8px 10px; border: 1px solid #ddd; border-radius: 10px; }
+.message-input button { padding: 8px 12px; border-radius: 10px; border: none; background: #111; color: #fff; cursor: pointer; }

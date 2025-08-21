@@ -8,79 +8,59 @@ function TotalSellers() {
   const [search, setSearch] = useState("");
 
   useEffect(() => {
-    const fetchSellers = async () => {
-      setLoading(true);
+    fetchSellers();
+  }, []);
 
-      // --- Try embedded join (works if FK seller.id -> user.id is defined in Supabase) ---
-      const { data: embedded, error: embedErr } = await supabase
-        .from("seller")
-        .select(`
-          id,
-          income,
-          rating,
-          level,
-          user:user (
-            name,
-            email
-          )
-        `);
+  const fetchSellers = async () => {
+    setLoading(true);
 
-      if (!embedErr && embedded) {
-        setRows(
-          embedded.map((s) => ({
-            id: s.id,
-            name: s.user?.name || "",
-            email: s.user?.email || "",
-            income: s.income ?? 0,
-            rating: s.rating ?? "N/A",
-            level: s.level ?? 0,
-          }))
-        );
-        setLoading(false);
-        return;
-      }
+    // Try embedded join (FK seller.id -> user.id)
+    const { data: embedded, error: embedErr } = await supabase
+      .from("seller")
+      .select(`
+        id,
+        income,
+        rating,
+        level,
+        user:user (
+          name,
+          email
+        )
+      `);
 
-      // --- Fallback: manual join in two queries ---
-      const { data: sellers, error: sellersErr } = await supabase
-        .from("seller")
-        .select("id, income, rating, level");
-
-      if (sellersErr) {
-        console.error("Error fetching sellers:", sellersErr.message);
-        setRows([]);
-        setLoading(false);
-        return;
-      }
-
-      const ids = sellers.map((s) => s.id);
-      let usersById = {};
-      if (ids.length) {
-        const { data: users, error: usersErr } = await supabase
-          .from("user")
-          .select("id, name, email")
-          .in("id", ids);
-
-        if (!usersErr && users) {
-          usersById = Object.fromEntries(users.map((u) => [u.id, u]));
-        }
-      }
-
+    if (!embedErr && embedded) {
       setRows(
-        sellers.map((s) => ({
+        embedded.map((s) => ({
           id: s.id,
-          name: usersById[s.id]?.name || "",
-          email: usersById[s.id]?.email || "",
+          name: s.user?.name || "",
+          email: s.user?.email || "",
           income: s.income ?? 0,
           rating: s.rating ?? "N/A",
           level: s.level ?? 0,
         }))
       );
-
       setLoading(false);
-    };
+      return;
+    }
 
-    fetchSellers();
-  }, []);
+    console.error("Error fetching sellers:", embedErr?.message);
+    setRows([]);
+    setLoading(false);
+  };
+
+  // Delete seller
+  const deleteSeller = async (sellerId) => {
+    const confirmDelete = window.confirm("Are you sure you want to delete this seller?");
+    if (!confirmDelete) return;
+
+    const { error } = await supabase.from("seller").delete().eq("id", sellerId);
+    if (error) {
+      console.error("Error deleting seller:", error);
+      alert("Failed to delete seller");
+    } else {
+      setRows(rows.filter((s) => s.id !== sellerId));
+    }
+  };
 
   if (loading) return <h3>Loading sellers...</h3>;
 
@@ -96,6 +76,7 @@ function TotalSellers() {
     <div className="admin-container">
       <h2 className="admin-title">Total Sellers ({filtered.length})</h2>
 
+      {/* Search input */}
       <input
         type="text"
         placeholder="Search by name or email..."
@@ -122,6 +103,7 @@ function TotalSellers() {
               <th style={th}>Rating</th>
               <th style={th}>Income</th>
               <th style={th}>Level</th>
+              <th style={th}>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -132,6 +114,14 @@ function TotalSellers() {
                 <td style={td}>{s.rating}</td>
                 <td style={td}>{s.income}</td>
                 <td style={td}>{s.level}</td>
+                <td style={td}>
+                  <button
+                    className="seller-button"
+                    onClick={() => deleteSeller(s.id)}
+                  >
+                    Delete
+                  </button>
+                </td>
               </tr>
             ))}
           </tbody>
@@ -141,7 +131,7 @@ function TotalSellers() {
   );
 }
 
-// quick inline styles (so you don't need an extra css file)
+// Inline styles for table cells
 const th = {
   border: "1px solid #ddd",
   padding: "10px",

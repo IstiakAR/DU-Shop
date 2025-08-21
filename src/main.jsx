@@ -21,6 +21,9 @@ import ProductPage from './components/MyProductsPage.jsx';
 import Order from './components/Order.jsx';
 import Messenger from './components/Messenger.jsx';
 import ShowOrder from './components/ShowOrder.jsx';
+import TotalOrder from './components/TotalOrder.jsx';
+import TotalProduct from './components/TotalProduct.jsx';
+import SellerOrders from './components/SellerOrders.jsx';
 
 const router = createBrowserRouter([
   {
@@ -98,6 +101,18 @@ const router = createBrowserRouter([
  {
   path: "/showOrder",
   element: <App><ShowOrder/></App>
+},
+ {
+  path: "/admin/totalOrders",
+  element: <App><TotalOrder/></App>
+},
+ {
+  path: "/admin/totalProducts",
+  element: <App><TotalProduct/></App>
+},
+{
+  path: "/seller/sellerOrder",
+  element: <App><SellerOrders/></App>
 }
 
 ]);

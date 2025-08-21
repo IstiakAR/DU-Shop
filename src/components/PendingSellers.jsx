@@ -12,36 +12,34 @@ function PendingSellers() {
 
   const fetchPending = async () => {
     setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from("pending_seller")
+        .select(`
+          id,
+          created_at,
+          user: user (id, name, email)
+        `);
 
-    // Assuming: pending_seller.id references user.id
-    const { data, error } = await supabase
-      .from("pending_seller")
-      .select(`
-        id,
-        created_at,
-        user: user (id, name, email)
-      `);
-
-    if (error) {
-      console.error("Error fetching pending sellers:", error.message);
-    } else {
+      if (error) throw error;
       setPendingSellers(data || []);
+    } catch (err) {
+      console.error("Error fetching pending sellers:", err.message);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
-  // Confirm seller: add to seller table, remove from pending_seller
   const confirmSeller = async (userId) => {
     try {
-      // Add to seller table
-      const { error: insertError } = await supabase.from("seller").insert({
+      // Insert into seller table with valid rating (1-5)
+      const { error: insertError } = await supabase.from("seller").insert([{
         id: userId,
         income: 0,
-        rating: 0,
+        rating: 1,  // must be 1-5
         rate: 0,
         level: 1,
-      });
-
+      }]);
       if (insertError) throw insertError;
 
       // Remove from pending_seller
@@ -49,24 +47,20 @@ function PendingSellers() {
         .from("pending_seller")
         .delete()
         .eq("id", userId);
-
       if (deleteError) throw deleteError;
 
-      // Refresh list
       fetchPending();
     } catch (err) {
       console.error("Error confirming seller:", err.message);
     }
   };
 
-  // Cancel pending seller
   const cancelSeller = async (userId) => {
     try {
       const { error } = await supabase
         .from("pending_seller")
         .delete()
         .eq("id", userId);
-
       if (error) throw error;
 
       fetchPending();
@@ -89,18 +83,24 @@ function PendingSellers() {
               <strong>{seller.user?.name || "Unknown Name"}</strong> (
               {seller.user?.email || "No Email"}) <br />
               Requested at: {new Date(seller.created_at).toLocaleString()}
-              <div style={{ marginTop: "8px" }}>
+              <div
+                style={{
+                  marginTop: "8px",
+                  display: "flex",
+                  gap: "10px",  // space between buttons
+                }}
+              >
                 <button
                   className="submit-btn"
                   onClick={() => confirmSeller(seller.id)}
-                  style={{ marginTop: "15px", padding: "8px 16px" }}
+                  style={{ padding: "8px 16px" }}
                 >
                   Confirm
                 </button>
                 <button
                   className="submit-btn"
                   onClick={() => cancelSeller(seller.id)}
-                  style={{ marginTop: "15px", padding: "8px 16px" }}
+                  style={{ padding: "8px 16px" }}
                 >
                   Cancel
                 </button>

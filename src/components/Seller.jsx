@@ -49,8 +49,15 @@ function Seller() {
 
   const handleApply = async () => {
     if (!user) return;
-    const { data, error } = await supabase.from("pending_seller").insert({ id: user.id });
-    if (!error) setApplied(true);
+
+    try {
+      // ✅ Wrap object in array to fix 406 error
+      const { data, error } = await supabase.from("pending_seller").insert([{ id: user.id }]);
+      if (!error) setApplied(true);
+      else console.error("Error applying as seller:", error);
+    } catch (err) {
+      console.error("Unexpected error:", err);
+    }
   };
 
   if (loading) return <h3>Loading...</h3>;
@@ -87,7 +94,7 @@ function Seller() {
       <div className="button-container">
         <button className="seller-button" onClick={() => navigate("/seller/products")}>Products</button>
         <button className="seller-button" onClick={() => navigate("/messenger")}>Messages</button>
-        <button className="seller-button" onClick={() => navigate("/showOrder")}>Orders</button>
+        <button className="seller-button" onClick={() => navigate("/seller/sellerOrder")}>Orders</button>
       </div>
     </div>
   );

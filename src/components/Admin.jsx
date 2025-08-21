@@ -10,10 +10,10 @@ function Admin() {
             <div className="admin-container">
                 <h2 className="admin-title">Admin Dashboard</h2>
                 <div className="admin-grid">
-                    <button className="submit-btn" onClick={() => navigate("/admin/products")}>Products</button>
+                    <button className="submit-btn" onClick={() => navigate("/admin/totalProducts")}>Products</button>
                     <button className="submit-btn" onClick={() => navigate("/admin/sellers")}>Sellers</button>
                     <button className="submit-btn" onClick={() => navigate("/admin/categories")}>Categories</button>
-                    <button className="submit-btn" onClick={() => navigate("/admin/orders")}>Orders</button>
+                    <button className="submit-btn" onClick={() => navigate("/admin/totalOrders")}>Orders</button>
                 </div>
             </div>
         </div>

@@ -26,3 +26,65 @@
     width: 100%;
     max-width: 400px;
 }
+
+
+.order-table {
+  width: 90%;
+  margin-top: 20px;
+  border-collapse: collapse;
+}
+
+.order-table th, .order-table td {
+  border: 1px solid #ddd;
+  padding: 12px;
+  text-align: center;
+}
+
+.order-table th {
+  background-color: #f4f4f4;
+  font-weight: bold;
+}
+
+.order-table tr:hover {
+  background-color: #f9f9f9;
+}
+
+.search-input {
+  padding: 10px;
+  margin-bottom: 20px;
+  width: 280px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+
+.total-count {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+  color: #374151;
+}
+
+.search-input {
+  width: 100%;
+  max-width: 400px;
+  padding: 8px 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.seller-button {
+  padding: 6px 12px;
+  background: #0b15d9;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.seller-button:hover {
+  background: #160be1;
+}

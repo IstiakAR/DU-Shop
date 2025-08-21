@@ -20,6 +20,7 @@ import CategoriesPage from './components/CategoriesPage.jsx';
 import ProductPage from './components/MyProductsPage.jsx';
 import Order from './components/Order.jsx';
 import Messenger from './components/Messenger.jsx';
+import ShowOrder from './components/ShowOrder.jsx';
 
 const router = createBrowserRouter([
   {
@@ -93,7 +94,12 @@ const router = createBrowserRouter([
   {
     path: "/messenger",
     element: <App><Messenger/></App>
-  }
+  },
+ {
+  path: "/showOrder",
+  element: <App><ShowOrder/></App>
+}
+
 ]);
 
 createRoot(document.getElementById('root')).render(

@@ -87,7 +87,7 @@ function Seller() {
       <div className="button-container">
         <button className="seller-button" onClick={() => navigate("/seller/products")}>Products</button>
         <button className="seller-button" onClick={() => navigate("/messenger")}>Messages</button>
-        <button className="seller-button">Sales Report</button>
+        <button className="seller-button" onClick={() => navigate("/showOrder")}>Orders</button>
       </div>
     </div>
   );

@@ -70,3 +70,41 @@ export const addToCart = async (id, value, type='plus') => {
     
     return true;
 };
+
+export const clearCart = async () => {
+    const userId = await getUserID();
+    
+    // Get user's active cart
+    const {data: cartData, error: cartError} = await supabase
+        .from('cart')
+        .select('cart_id')
+        .eq('user_id', userId)
+        .eq('status', 'active');
+    
+    if (cartError) throw new Error(`Cart query error: ${cartError.message}`);
+    
+    if (cartData && cartData.length > 0) {
+        const cartId = cartData[0].cart_id;
+        
+        // Delete all cart items
+        const { error: deleteItemsError } = await supabase
+            .from('cart_item')
+            .delete()
+            .eq('cart_id', cartId);
+        
+        if (deleteItemsError) throw new Error(`Delete cart items error: ${deleteItemsError.message}`);
+        
+        // Update cart status to completed
+        const { error: updateCartError } = await supabase
+            .from('cart')
+            .update({ status: 'completed' })
+            .eq('cart_id', cartId);
+        
+        if (updateCartError) throw new Error(`Update cart status error: ${updateCartError.message}`);
+        
+        console.log('Cart cleared successfully');
+        return true;
+    }
+    
+    return false;
+};

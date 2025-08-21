@@ -1,6 +1,8 @@
 import { useLocation, useNavigate } from "react-router-dom";
 import OrderItem from "./OrderItem";
-import supabases from "../supabase";
+import supabase from "../supabase";
+import { getUserID } from "../fetch";
+import { validateStockAvailability } from "./orderUtils";
 import { useState } from "react";
 
 function Order() {
@@ -13,26 +15,104 @@ function Order() {
 
   const handlePayment = async () => {
     setLoading(true);
-    const ids = cartItems.map(item => item.id);
-    const { data, error } = await supabases
-      .from("product")
-      .select("id,stock,name")
-      .in("id", ids);
+    
+    try {
+      // Check stock availability
+      const { isValid, outOfStockItems } = await validateStockAvailability(cartItems);
 
-    setLoading(false);
+      if (!isValid) {
+        const names = outOfStockItems.map(i => i.name).join(", ");
+        alert(`Insufficient stock for: ${names}`);
+        setLoading(false);
+        return;
+      }
 
-    const outOfStockItems = cartItems.filter(cartItem => {
-      const dbItem = data.find(d => d.id === cartItem.id);
-      return !dbItem || cartItem.quantity > dbItem.stock;
-    });
+      // Get current user
+      const userId = await getUserID();
+      if (!userId) {
+        alert("Please login to continue");
+        navigate("/login");
+        return;
+      }
 
-    if (outOfStockItems.length > 0) {
-      const names = outOfStockItems.map(i => i.name).join(", ");
-      alert(`Insufficient stock for: ${names}`);
-      return;
+      // Create pending payment
+      const { data: paymentData, error: paymentError } = await supabase
+        .from("payment")
+        .insert({
+          status: "pending",
+          method: "bkash", // Default, will be updated in Payment component
+          bank_id: "temp"
+        })
+        .select()
+        .single();
+
+      if (paymentError) throw paymentError;
+
+      // Create order
+      const { data: orderData, error: orderError } = await supabase
+        .from("order")
+        .insert({
+          user_id: userId,
+          pay_id: paymentData.pay_id
+        })
+        .select()
+        .single();
+
+      if (orderError) throw orderError;
+
+      // Create order items and reduce stock
+      const orderItems = cartItems.map(item => ({
+        order_id: orderData.id,
+        prod_id: item.id,
+        quantity: item.quantity,
+        price_at_purchase: item.price
+      }));
+
+      const { error: orderItemsError } = await supabase
+        .from("order_item")
+        .insert(orderItems);
+
+      if (orderItemsError) throw orderItemsError;
+
+      // Reduce stock for all products
+      for (const item of cartItems) {
+        // First get the current stock
+        const { data: productData, error: fetchError } = await supabase
+          .from("product")
+          .select("stock")
+          .eq("id", item.id)
+          .single();
+
+        if (fetchError) throw fetchError;
+
+        // Calculate new stock
+        const newStock = productData.stock - item.quantity;
+
+        // Update the stock
+        const { error: stockError } = await supabase
+          .from("product")
+          .update({ stock: newStock })
+          .eq("id", item.id);
+
+        if (stockError) throw stockError;
+      }
+
+      // Navigate to payment with order and payment data
+      navigate("/payment", { 
+        state: { 
+          cartItems, 
+          orderId: orderData.id, 
+          paymentId: paymentData.pay_id,
+          total 
+        } 
+      });
+
+    } catch (error) {
+      console.error("Error processing order:", error);
+      alert("Error processing order. Please try again.");
+    } finally {
+      setLoading(false);
     }
-
-    navigate("/payment", { state: { cartItems } });
   };
 
   return (

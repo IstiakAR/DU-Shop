@@ -24,6 +24,7 @@ import ShowOrder from './components/ShowOrder.jsx';
 import TotalOrder from './components/TotalOrder.jsx';
 import TotalProduct from './components/TotalProduct.jsx';
 import SellerOrders from './components/SellerOrders.jsx';
+import Payment from './components/Payment.jsx';
 
 const router = createBrowserRouter([
   {
@@ -113,8 +114,11 @@ const router = createBrowserRouter([
 {
   path: "/seller/sellerOrder",
   element: <App><SellerOrders/></App>
+},
+{
+  path: "/payment",
+  element: <App><Payment/></App>
 }
-
 ]);
 
 createRoot(document.getElementById('root')).render(

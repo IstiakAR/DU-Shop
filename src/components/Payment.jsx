@@ -2,7 +2,6 @@ import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import supabase from "../supabase";
 import { clearCart } from "./CartCondition";
-import { cleanupExpiredOrder } from "./orderUtils";
 import "../styles/Payment.css";
 
 const paymentOptions = [
@@ -23,10 +22,51 @@ function Payment() {
   const [address, setAddress] = useState("");
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentComplete, setPaymentComplete] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300); // 5 minutes in seconds
+  const [timeLeft, setTimeLeft] = useState(300);
   const [paymentExpired, setPaymentExpired] = useState(false);
 
-  // Timer effect
+  // Check order status periodically (detect server-side cleanup)
+  useEffect(() => {
+    if (!orderId || paymentComplete || paymentExpired) return;
+
+    const checkOrderStatus = async () => {
+      try {
+        const { data } = await supabase
+          .from('order')
+          .select('id')
+          .eq('id', orderId)
+          .single();
+
+        if (!data) {
+          // Order was cleaned up server-side
+          setPaymentExpired(true);
+          alert("Your session expired and the order was automatically cancelled. Stock has been restored.");
+          return;
+        }
+
+        // Check payment status
+        const { data: paymentData } = await supabase
+          .from('payment')
+          .select('status')
+          .eq('pay_id', paymentId)
+          .single();
+
+        if (paymentData?.status === 'failed') {
+          setPaymentExpired(true);
+          alert("Payment session expired. Order was cancelled and stock restored.");
+        }
+      } catch (error) {
+        console.error("Error checking order status:", error);
+      }
+    };
+
+    // Check immediately and then every 15 seconds
+    checkOrderStatus();
+    const statusInterval = setInterval(checkOrderStatus, 15000);
+
+    return () => clearInterval(statusInterval);
+  }, [orderId, paymentId, paymentComplete, paymentExpired]);
+
   useEffect(() => {
     if (!orderId || paymentComplete || paymentExpired) return;
 
@@ -43,7 +83,6 @@ function Payment() {
     return () => clearInterval(timer);
   }, [orderId, paymentComplete, paymentExpired]);
 
-  // Prevent navigation away without confirmation
   useEffect(() => {
     if (!orderId || paymentComplete || paymentExpired) return;
 
@@ -60,17 +99,10 @@ function Payment() {
     };
   }, [orderId, paymentComplete, paymentExpired]);
 
-  // Handle payment timeout
   const handlePaymentTimeout = async () => {
     setPaymentExpired(true);
-    
-    try {
-      await cleanupExpiredOrder(orderId, paymentId, cartItems);
-      alert("Payment time expired. Order has been cancelled and stock has been restored.");
-      navigate("/");
-    } catch (error) {
-      console.error("Error handling payment timeout:", error);
-    }
+    alert("Payment time expired. Order has been cancelled and stock has been restored.");
+    navigate("/");
   };
 
   const handlePayment = async (e) => {
@@ -78,7 +110,19 @@ function Payment() {
     setIsProcessing(true);
     
     try {
-      // Update payment with actual details
+      // Double-check order still exists before processing payment
+      const { data: orderCheck } = await supabase
+        .from('order')
+        .select('id')
+        .eq('id', orderId)
+        .single();
+
+      if (!orderCheck) {
+        alert("Order has expired. Please try again.");
+        navigate("/");
+        return;
+      }
+
       const { error: paymentError } = await supabase
         .from("payment")
         .update({
@@ -90,7 +134,6 @@ function Payment() {
 
       if (paymentError) throw paymentError;
 
-      // Create delivery record
       const { error: deliveryError } = await supabase
         .from("delivery")
         .insert({
@@ -102,7 +145,6 @@ function Payment() {
 
       if (deliveryError) throw deliveryError;
 
-      // Clear user's cart after successful order
       await clearCart();
 
       setTimeout(() => {
@@ -117,14 +159,12 @@ function Payment() {
     }
   };
 
-  // Format time display
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  // Redirect if no order data
   if (!orderId || !paymentId) {
     navigate("/");
     return null;

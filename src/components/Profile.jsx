@@ -8,6 +8,7 @@ function Profile() {
     const navigate = useNavigate();
     const [user, setUser] = useState(null);
     const [isAdmin, setIsAdmin] = useState(false);
+    const [isSeller, setIsSeller] = useState(false);
 
     useEffect(() => {
         const userInfo = async () => {
@@ -27,7 +28,14 @@ function Profile() {
                 setUser(data);
             }
 
-            // Check if user is admin
+            const { data: sellerData, error: sellerError } = await supabase
+                .from('seller')
+                .select('id')
+                .eq('id', userData.user.id)
+                .single();
+
+            if (!sellerError && sellerData) setIsSeller(true);
+
             const { data: adminData, error: adminError } = await supabase
                 .from('admin')
                 .select('id')
@@ -66,15 +74,18 @@ function Profile() {
                    <img src={rightArrow} />
                   </span>
                  </div>
-             
 
-                <div className="profile-divider" />
-                <div className="profile-link-row" onClick={() => navigate('/seller')}>
-                    <span>Seller dashboard</span>
-                    <span className="profile-arrow">
-                        <img src={rightArrow} />
-                    </span>
-                </div>
+                {isSeller && (
+                    <>
+                        <div className="profile-divider" />
+                        <div className="profile-link-row" onClick={() => navigate('/seller')}>
+                            <span>Seller dashboard</span>
+                            <span className="profile-arrow">
+                                <img src={rightArrow} />
+                            </span>
+                        </div>
+                    </>
+                )}
 
                 {isAdmin && (
                     <>

@@ -17,6 +17,7 @@
     flex-direction: row;
     align-items: center;
     color: white;
+    justify-content: center;
 }
 
 .right-header{
@@ -80,7 +81,7 @@
     margin-left: 30px;
 }
 
-.search-input{
+.search-product{
     width: 500px;
     height: 40px;
     border-radius: 20px;

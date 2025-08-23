@@ -3,7 +3,8 @@ import Cart from './Cart';
 import CategoryBar from './CategoryBar';
 import addIcon from '../assets/add.svg';
 import cartIcon from '../assets/cart.svg';
-import profileIcon from '../assets/profile.svg'
+import profileIcon from '../assets/profile.svg';
+import { searchProducts } from './SeacrhingMethod';
 
 import { useState, useEffect, useRef } from 'react';
 import supabase from '../supabase';
@@ -42,9 +43,27 @@ function Header({isLoggedIn=false}) {
         e.preventDefault();
         setSearchText(e.target.value);
     }
-    const handleClose = () => {
-        setOpen(false);
+    const handleKeyDown = async (e) => {
+        if (e.key === 'Enter' && searchText.trim()) {
+            const { data, error } = await supabase
+                .from('product')
+                .select('*')
+                .eq('type', 'product');
+
+            if (!error && data) {
+                const searchResults = searchProducts(data, searchText);
+
+                navigate('/shop', { 
+                    state: { 
+                        products: searchResults, 
+                        searchTerm: searchText,
+                        isSearch: true
+                    } 
+                });
+            }
+        }
     };
+
     const handleToggle = () => {
         setOpen(!open);
         if (cart) setCart(false);
@@ -78,7 +97,7 @@ function Header({isLoggedIn=false}) {
             <div className='center-header'>
                 <CategoryBar />
                 <input type="text" placeholder='Search for products...' 
-                className='search-input' onChange={handleEdit} value={searchText}/>
+                className='search-product' onChange={handleEdit} value={searchText} onKeyDown={handleKeyDown}/>
             </div>
             <div className='right-header'>
                 {isLoggedIn ? (

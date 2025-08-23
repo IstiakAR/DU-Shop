@@ -14,8 +14,8 @@ const paymentOptions = [
 function Payment() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { cartItems, orderId, paymentId, total } = location.state || {};
-  
+  const { orderId, paymentId, total } = location.state || {};
+
   const [selected, setSelected] = useState("bkash");
   const [phone, setPhone] = useState("");
   const [bankId, setBankId] = useState("");
@@ -25,7 +25,6 @@ function Payment() {
   const [timeLeft, setTimeLeft] = useState(300);
   const [paymentExpired, setPaymentExpired] = useState(false);
 
-  // Check order status periodically (detect server-side cleanup)
   useEffect(() => {
     if (!orderId || paymentComplete || paymentExpired) return;
 
@@ -38,13 +37,11 @@ function Payment() {
           .single();
 
         if (!data) {
-          // Order was cleaned up server-side
           setPaymentExpired(true);
           alert("Your session expired and the order was automatically cancelled. Stock has been restored.");
           return;
         }
 
-        // Check payment status
         const { data: paymentData } = await supabase
           .from('payment')
           .select('status')
@@ -60,7 +57,6 @@ function Payment() {
       }
     };
 
-    // Check immediately and then every 15 seconds
     checkOrderStatus();
     const statusInterval = setInterval(checkOrderStatus, 15000);
 
@@ -110,7 +106,6 @@ function Payment() {
     setIsProcessing(true);
     
     try {
-      // Double-check order still exists before processing payment
       const { data: orderCheck } = await supabase
         .from('order')
         .select('id')

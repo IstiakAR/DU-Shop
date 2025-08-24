@@ -131,26 +131,6 @@ textarea{
     width: 100%;
     box-sizing: border-box;
 }
-.submit-btn {
-    width: 100%;
-    padding: 12px;
-    background-color: #2d1972;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-.submit-btn:hover {
-    background-color: #ffb606;
-}
-.submit-btn:disabled {
-    background-color: #39305a;
-    cursor: not-allowed;
-    opacity: 0.6;
-}
 
 .edit-preview{
     background-color: aliceblue;

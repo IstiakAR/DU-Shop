@@ -97,7 +97,7 @@ function Login() {
             <div className="form-container">
                 <h1>{isLogin ? "Login" : "Sign Up"}</h1>
                 
-                <form className="full-form">
+                <form className="full-form" onSubmit={isLogin ? handleSignIn : handleSignUp}>
 
                     {!isLogin && (
                         <div className="form-group">
@@ -120,11 +120,9 @@ function Login() {
                         <div className="forgot-password" onClick={() => navigate('/forgot-password')}>Forgot Password?</div>
                     </div>}
 
-                    {(isLogin) ? (
-                        <button type="button" className="submit-btn" onClick={handleSignIn}>Login</button>
-                    ) : (
-                        <button type="button" className="submit-btn" onClick={handleSignUp}>Sign Up</button>
-                    )}
+                    <button type="submit" className="submit-btn">
+                        {isLogin ? "Login" : "Sign Up"}
+                    </button>
 
                 </form>
 

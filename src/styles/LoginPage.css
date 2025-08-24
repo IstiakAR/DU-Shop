@@ -64,6 +64,11 @@ input:focus {
 .submit-btn:hover {
     background-color: #ffb606;
 }
+.submit-btn:disabled {
+    background-color: #39305a;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
 
 .forgot-password {
     color: #4a90e2;

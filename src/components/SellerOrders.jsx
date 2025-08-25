@@ -116,7 +116,6 @@ function SellerOrders() {
 
   return (
     <div className="seller-orders-container">
-      <h2>Seller Orders</h2>
       {orders.length === 0 ? (
         <p>No orders found for your products.</p>
       ) : (

@@ -8,6 +8,7 @@ export default function Messenger() {
   const [selectedUser, setSelectedUser] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
+  const [loadingMessages, setLoadingMessages] = useState(false);
   const listRef = useRef(null);
   const [sellerId, setSellerId] = useState(null);
 
@@ -49,7 +50,7 @@ export default function Messenger() {
     if (!selectedUser) return;
 
     const fetchMessages = async () => {
-      console.log("Hello")
+      setLoadingMessages(true);
       const { data: outgoingMessages, error: outgoingError } = await supabase
         .from("messenger")
         .select("*")
@@ -67,6 +68,7 @@ export default function Messenger() {
         new Date(a.created_at) - new Date(b.created_at)
       );
       setMessages(data);
+      setLoadingMessages(false);
     };
 
     fetchMessages();
@@ -141,7 +143,6 @@ export default function Messenger() {
   return (
     <div className="messenger-container">
       <div className="users-list">
-        <h3>Users</h3>
         {users.length === 0 && <p>No messages yet</p>}
         {users.map(u => (
           <div
@@ -160,7 +161,12 @@ export default function Messenger() {
         ) : (
           <>
             <div className="message-list" ref={listRef}>
-              {messages.length === 0 ? (
+              {loadingMessages ? (
+                <div className="loading-messages">
+                  <div className="loading-spinner"></div>
+                  <p>Loading messages...</p>
+                </div>
+              ) : messages.length === 0 ? (
                 <p className="empty-chat-message">Say hello to start the conversation.</p>
               ) : (
                 messages.map(m => {

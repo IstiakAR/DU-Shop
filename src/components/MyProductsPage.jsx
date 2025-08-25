@@ -3,6 +3,8 @@ import { useNavigate } from "react-router-dom";
 import supabase from "../supabase";
 import { getUserID } from "../fetch";
 import "../styles/Product.css";
+import "../styles/Admin.css";
+import "../styles/MyProductsPage.css";
 
 function ProductPage() {
   const navigate = useNavigate();
@@ -101,64 +103,84 @@ function ProductPage() {
   };
 
   if (loading) {
-    return <p>Loading products...</p>;
+    return (
+      <div className="my-products-loading-wrapper">
+        <div className="admin-container">
+          <h2 className="admin-title">Loading products...</h2>
+        </div>
+      </div>
+    );
   }
-
-  if (products.length === 0) {
-    return <p>You have no products listed yet.</p>;
-  }
-
   return (
-    <div className="product-container">
-      <h2>Your Products</h2>
-      <p>Total Products: {products.length}</p>
-      <p>Showing: {filteredProducts.length}</p>
+    <div className="my-products-page-wrapper">
+      <div className="admin-container">
+        <h2 className="my-products-header">My Products</h2>
+        
+        <div className="my-products-stats">
+          <div className="stat-card">
+            <h3>{products.length}</h3>
+            <p>Total Products</p>
+          </div>
+          <div 
+            className="stat-card add-product-card"
+            onClick={() => navigate('/add-product')}
+          >
+            <h3>+</h3>
+            <p>Add Product</p>
+          </div>
+        </div>
+        
+        <div className="my-products-search-section">
+          <div className="search-wrapper">
+            <input
+              type="text"
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="search-input"
+            />
+          </div>
+        </div>
 
-      <input
-        type="text"
-        placeholder="Search products..."
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="search-input"
-      />
-
-      <table className="product-table">
-        <thead>
-          <tr>
-            <th>Product</th>
-            <th>Price</th>
-            <th>Stock</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredProducts.map((p) => (
-            <tr key={p.id}>
-              <td>{p.name}</td>
-              <td>
-                <button
-                  className="edit-btn"
-                  onClick={() => navigate(`/update-product/${p.id}`)}
-                  style={{ marginRight: '10px', backgroundColor: '#007bff', color: 'white' }}
-                >
-                  Edit
-                </button>
-                <button
-                  className="delete-btn"
-                  onClick={() => handleDelete(p.id)}
-                >
-                  Delete
-                </button>
-              </td>
-            </tr>
-          ))}
-          {filteredProducts.length === 0 && (
-            <tr>
-              <td colSpan="4">No products match your search.</td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+        <div className="products-table-container">
+          <table className="product-table">
+            <thead>
+              <tr>
+                <th className="product-name-column">Product</th>
+                <th className="actions-column">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredProducts.map((p) => (
+                <tr key={p.id}>
+                  <td className="product-name-cell">{p.name}</td>
+                  <td>
+                    <div className="action-buttons">
+                      <button
+                        className="edit-btn"
+                        onClick={() => navigate(`/update-product/${p.id}`)}
+                      >
+                        Edit
+                      </button>
+                      <button
+                        className="delete-btn"
+                        onClick={() => handleDelete(p.id)}
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+              {filteredProducts.length === 0 && (
+                <tr>
+                  <td colSpan="2" className="no-products-message">No products match your search.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
     </div>
   );
 }

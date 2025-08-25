@@ -69,16 +69,19 @@
 
 .action-buttons {
   display: flex;
-  gap: 10px; /* 👈 spacing between buttons */
+  gap: 8px;
+  justify-content: center;
+  flex-wrap: nowrap;
 }
 
 button {
-  padding: 6px 12px;
-  font-size: 14px;
+  padding: 4px 8px;
+  font-size: 12px;
   border: none;
-  border-radius: 6px;
+  border-radius: 4px;
   cursor: pointer;
   transition: background 0.2s ease;
+  white-space: nowrap;
 }
 
 /* Button styles */

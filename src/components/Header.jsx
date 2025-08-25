@@ -1,7 +1,7 @@
 import '../styles/Header.css';
 import Cart from './Cart';
 import CategoryBar from './CategoryBar';
-import addIcon from '../assets/add.svg';
+import chatIcon from '../assets/chat.svg';
 import cartIcon from '../assets/cart.svg';
 import profileIcon from '../assets/profile.svg';
 import { searchProducts } from './SeacrhingMethod';
@@ -80,9 +80,9 @@ function Header({isLoggedIn=false}) {
         setCart(!cart);
         if (open) setOpen(false);
     }
-    const handleAdd = () => {
+    const handleChat = () => {
         if (isLoggedIn) {
-            navigate('/add-product');
+            navigate('/messenger');
         }
     };
 
@@ -102,8 +102,8 @@ function Header({isLoggedIn=false}) {
             <div className='right-header'>
                 {isLoggedIn ? (
                     <>
-                    <img src={addIcon} alt="Add" className='add-icon' 
-                        style={{width: 45, height: 45}} onClick={handleAdd}/>
+                    <img src={chatIcon} alt="Chat" className='chat-icon' 
+                        style={{width: 40, height: 40}} onClick={handleChat}/>
                     <img src={cartIcon} alt="Cart" className='cart-icon' 
                         style={{width: 45, height: 45}} onClick={handleCart}/>
                     <img src={profileIcon} alt="Profile" className='profile-icon' 

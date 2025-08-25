@@ -7,7 +7,7 @@
 .users-list {
   width: 30%;
   border-right: 1px solid #ccc;
-  padding: 10px;
+  padding: 20px 10px;
   overflow-y: auto;
   background: #f7f7f7;
 }
@@ -31,6 +31,7 @@
   flex: 1;
   display: flex;
   flex-direction: column;
+  background: #f8fafc;
 }
 
 .chat-header {
@@ -44,7 +45,7 @@
   padding: 10px;
   overflow-y: auto;
   background: #e5ddd5;
-  padding:15px;
+  padding: 20px 10px;
 
 }
 
@@ -104,9 +105,55 @@
 }
 
 .select-user-prompt {
-  padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 40px 20px;
+    background: #ffffff;
+    font-size: 1.2rem;
+    font-weight: 500;
+    color: #64748b;
+    text-align: center;
+}
+
+.select-user-prompt::before {
+    content: "💬";
+    font-size: 3rem;
+    margin-bottom: 16px;
+    opacity: 0.5;
 }
 
 .empty-chat-message {
   padding: 10px;
+}
+
+.loading-messages {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: #64748b;
+}
+
+.loading-messages p {
+  margin-top: 16px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid #f3f3f3;
+  border-top: 3px solid #128c7e;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

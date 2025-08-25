@@ -131,35 +131,39 @@ function Seller() {
   }
 
   return (
-    <div className="seller-container">
-      <h2>Seller Profile</h2>
-      <p>Welcome, {user?.email || "Seller"}!</p>
+    <div style={{ height: "85vh", width: "100%", display: "flex", justifyContent: "center", alignItems: "center" }}>
+      <div className="seller-container">
+        <h2 className="seller-title">Seller Dashboard</h2>
+        
+        <div className="seller-stats">
+          <div className="stat-item">
+            <span className="stat-label">Rating</span>
+            <span className="stat-value">{stats.rating}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Total Sales</span>
+            <span className="stat-value">{stats.totalSales}</span>
+          </div>
+          <div className="stat-item">
+            <span className="stat-label">Total Amount</span>
+            <span className="stat-value">${stats.totalAmount}</span>
+          </div>
+        </div>
 
-      <div className="seller-stats">
-        <p>⭐ Rating: <strong>{stats.rating}</strong></p>
-        <p>📦 Total Sales: <strong>{stats.totalSales}</strong></p>
-        <p>💰 Total Amount: <strong>${stats.totalAmount}</strong></p>
-      </div>
-
-      <div className="button-container">
-        <button
-          className="seller-button"
-          onClick={() => navigate("/seller/products")}
-        >
-          Products
-        </button>
-        <button
-          className="seller-button"
-          onClick={() => navigate("/messenger")}
-        >
-          Messages
-        </button>
-        <button
-          className="seller-button"
-          onClick={() => navigate("/seller/sellerOrder")}
-        >
-          Orders
-        </button>
+        <div className="seller-grid">
+          <button
+            className="submit-btn"
+            onClick={() => navigate("/seller/products")}
+          >
+            Products
+          </button>
+          <button
+            className="submit-btn"
+            onClick={() => navigate("/seller/sellerOrder")}
+          >
+            Orders
+          </button>
+        </div>
       </div>
     </div>
   );

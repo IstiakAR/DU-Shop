@@ -72,6 +72,10 @@ const router = createBrowserRouter([
     element: <App><AddProduct /></App>
   },
   {
+    path: "update-product/:id",
+    element: <App><AddProduct /></App>
+  },
+  {
     path: "admin/sellers",
     element: <App><SellerManagement /></App>
   },

@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import supabase from "../supabase";
 import { getUserID } from "../fetch";
 import "../styles/Product.css";
 
 function ProductPage() {
+  const navigate = useNavigate();
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -89,7 +91,7 @@ function ProductPage() {
             <th>Product</th>
             <th>Price</th>
             <th>Stock</th>
-            <th>Action</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -99,6 +101,13 @@ function ProductPage() {
               <td>${p.price}</td>
               <td>{p.stock}</td>
               <td>
+                <button
+                  className="edit-btn"
+                  onClick={() => navigate(`/update-product/${p.id}`)}
+                  style={{ marginRight: '10px', backgroundColor: '#007bff', color: 'white' }}
+                >
+                  Edit
+                </button>
                 <button
                   className="delete-btn"
                   onClick={() => handleDelete(p.id)}

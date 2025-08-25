@@ -10,6 +10,8 @@ function ProductPage() {
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [editingId, setEditingId] = useState(null);
+  const [editForm, setEditForm] = useState({ price: "", stock: "" });
 
   useEffect(() => {
     const fetchProducts = async () => {
@@ -65,6 +67,39 @@ function ProductPage() {
     }
   };
 
+  const handleEdit = (product) => {
+    setEditingId(product.id);
+    setEditForm({ price: product.price, stock: product.stock });
+  };
+
+  const handleCancel = () => {
+    setEditingId(null);
+    setEditForm({ price: "", stock: "" });
+  };
+
+  const handleSave = async (id) => {
+    const { error } = await supabase
+      .from("product")
+      .update({
+        price: editForm.price,
+        stock: editForm.stock,
+      })
+      .eq("id", id);
+
+    if (error) {
+      console.error("Update error:", error);
+      alert("Failed to update product.");
+    } else {
+      const updated = products.map((p) =>
+        p.id === id ? { ...p, price: editForm.price, stock: editForm.stock } : p
+      );
+      setProducts(updated);
+      setFilteredProducts(updated);
+      setEditingId(null);
+      setEditForm({ price: "", stock: "" });
+    }
+  };
+
   if (loading) {
     return <p>Loading products...</p>;
   }
@@ -76,6 +111,8 @@ function ProductPage() {
   return (
     <div className="product-container">
       <h2>Your Products</h2>
+      <p>Total Products: {products.length}</p>
+      <p>Showing: {filteredProducts.length}</p>
 
       <input
         type="text"
@@ -98,8 +135,6 @@ function ProductPage() {
           {filteredProducts.map((p) => (
             <tr key={p.id}>
               <td>{p.name}</td>
-              <td>${p.price}</td>
-              <td>{p.stock}</td>
               <td>
                 <button
                   className="edit-btn"

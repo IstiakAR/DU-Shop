@@ -28,7 +28,7 @@ function TotalOrders() {
       // Step 1: Fetch orders
       const { data: ordersData, error: ordersError } = await supabase
         .from("order")
-        .select("id, created_at, pay_id")
+        .select("id, created_at, pay_id, delivery:delivery(*)")
         .eq("user_id", userId);
 
       if (ordersError) throw ordersError;
@@ -60,12 +60,16 @@ function TotalOrders() {
         const totalPrice = items.reduce((sum, i) => sum + i.quantity * i.price_at_purchase, 0);
         const productNames = items.map(i => `${i.product.name} × ${i.quantity}`);
 
+        const delivery = order.delivery && order.delivery.length > 0 ? order.delivery[0] : null;
+
         return {
           ...order,
           payment_status: payment?.status || "N/A",
           total_price: totalPrice,
           items_count: items.length,
           product_names: productNames,
+          delivery_status: delivery?.delivery_status || "Pending",
+          delivery_id: delivery?.delivery_id,
         };
       });
 
@@ -95,6 +99,21 @@ function TotalOrders() {
     }
   };
 
+  const markReceived = async (deliveryId) => {
+    try {
+      const { error } = await supabase
+        .from("delivery")
+        .update({ delivery_status: "Delivered" })
+        .eq("delivery_id", deliveryId);
+
+      if (error) throw error;
+
+      fetchOrders(); // refresh after update
+    } catch (err) {
+      console.error("Error updating delivery:", err);
+    }
+  };
+
   const filteredOrders = orders.filter(
     (o) =>
       o.id.toLowerCase().includes(search.toLowerCase()) ||
@@ -114,53 +133,58 @@ function TotalOrders() {
         onChange={(e) => setSearch(e.target.value)}
         className="search-input"
       />
-      <table className="order-table">
-        <thead>
-          <tr>
-            <th>Order ID</th>
-            <th>Payment Status</th>
-            <th>Items Count</th>
-            <th>Products</th>
-            <th>Total Price</th>
-            <th>Date</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {filteredOrders.length > 0 ? (
-            filteredOrders.map((o) => (
-              <tr key={o.id}>
-                <td>{o.id}</td>
-                <td>{o.payment_status}</td>
-                <td>{o.items_count}</td>
-                <td>
-                  {o.product_names.map((name, idx) => (
-                    <div key={idx}>{name}</div>
-                  ))}
-                </td>
-                <td>৳{o.total_price}</td>
-                <td>{new Date(o.created_at).toLocaleDateString()}</td>
-                <td>
-                  {(o.payment_status === "pending" || o.payment_status === "completed") && (
-                    <button
-                      className="cancel-btn"
-                      onClick={() => cancelOrder(o.id, o.pay_id)}
-                    >
-                      Cancel
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="7" style={{ textAlign: "center" }}>
-                No orders found
-              </td>
-            </tr>
-          )}
-        </tbody>
-      </table>
+<table className="order-table">
+  <thead>
+    <tr>
+      <th>Order ID</th>
+      <th>Payment Status</th>
+      <th>Items Count</th>
+      <th>Products</th>
+      <th>Total Price</th>
+      <th>Date</th>
+      <th>Delivery Status</th>  {/* New column added */}
+      <th>Action</th>
+    </tr>
+  </thead>
+  <tbody>
+    {filteredOrders.length > 0 ? (
+      filteredOrders.map((o) => (
+        <tr key={o.id}>
+          <td>{o.id}</td>
+          <td>{o.payment_status}</td>
+          <td>{o.items_count}</td>
+          <td>
+            {o.product_names.map((name, idx) => (
+              <div key={idx}>{name}</div>
+            ))}
+          </td>
+          <td>৳{o.total_price}</td>
+          <td>{new Date(o.created_at).toLocaleDateString()}</td>
+          <td>{o.delivery_status}</td> {/* Show delivery status here */}
+          <td>
+            {o.delivery_status === "On the Way" && (
+              <button
+                className="receive-btn"
+                onClick={() => markReceived(o.delivery_id)}
+                style={{ marginRight: "10px" }}
+                disabled={o.delivery_status === "Delivered"}
+              >
+                Received
+              </button>
+            )}
+          </td>
+        </tr>
+      ))
+    ) : (
+      <tr>
+        <td colSpan="8" style={{ textAlign: "center" }}>
+          No orders found
+        </td>
+      </tr>
+    )}
+  </tbody>
+</table>
+
     </div>
   );
 }

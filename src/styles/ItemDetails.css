@@ -148,3 +148,21 @@
     color: #222;
     font-size: 1.05em;
 }
+
+/* Status indicator styles */
+.status-indicator {
+    font-weight: 600;
+    font-size: 0.9em;
+}
+
+.status-active {
+    color: #0c5460;
+}
+
+.status-pending {
+    color: #856404;
+}
+
+.status-out-of-stock {
+    color: #721c24;
+}

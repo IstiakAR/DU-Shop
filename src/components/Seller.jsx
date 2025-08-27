@@ -8,6 +8,7 @@ function Seller() {
   const [applied, setApplied] = useState(false);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const [isBanned, setIsBanned] = useState(false);
   const [stats, setStats] = useState({ rating: 0, totalSales: 0, totalAmount: 0 });
 
   const navigate = useNavigate();
@@ -31,6 +32,14 @@ function Seller() {
         .single();
 
       if (sellerData) {
+        // Check if seller is banned (level = -1)
+        if (sellerData.level === -1) {
+          setIsBanned(true);
+          setIsSeller(false); // Treat banned seller as not a seller
+          setLoading(false);
+          return;
+        }
+        
         setIsSeller(true);
 
         // ⭐ Get all products by this seller
@@ -110,6 +119,18 @@ function Seller() {
   };
 
   if (loading) return <h3>Loading...</h3>;
+
+  if (isBanned) {
+    return (
+      <div className="seller-container">
+        <div className="form-container">
+          <h2 style={{ color: '#d32f2f' }}>Account Banned</h2>
+          <p>Your seller account has been banned by an administrator.</p>
+          <p>Please contact support for more information.</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isSeller) {
     return (

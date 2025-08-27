@@ -22,7 +22,7 @@ function ProductPage() {
 
       const { data: sellerData, error: sellerError } = await supabase
         .from("seller")
-        .select("id")
+        .select("id, level")
         .eq("id", userId)
         .single();
 
@@ -31,9 +31,16 @@ function ProductPage() {
         return;
       }
 
+      // Check if seller is banned
+      if (sellerData.level === -1) {
+        alert("Your seller account has been banned. You cannot access product management.");
+        setLoading(false);
+        return;
+      }
+
       const { data: productData, error: productError } = await supabase
         .from("product")
-        .select("id, name, price, stock")
+        .select("id, name, price, stock, status")
         .eq("seller_id", sellerData.id);
 
       if (productError) {
@@ -55,15 +62,24 @@ function ProductPage() {
     setFilteredProducts(filtered);
   }, [search, products]);
 
-  const handleDelete = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
+  const handleToggleStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'out-of-stock' ? 'active' : 'out-of-stock';
+    const action = newStatus === 'out-of-stock' ? 'mark as out of stock' : 'mark as available';
+    
+    if (!window.confirm(`Are you sure you want to ${action}?`)) return;
 
-    const { error } = await supabase.from("product").delete().eq("id", id);
+    const { error } = await supabase
+      .from("product")
+      .update({ status: newStatus })
+      .eq("id", id);
+      
     if (error) {
-      console.error("Delete error:", error);
-      alert("Failed to delete product.");
+      console.error("Status update error:", error);
+      alert("Failed to update product status.");
     } else {
-      const updated = products.filter((p) => p.id !== id);
+      const updated = products.map((p) => 
+        p.id === id ? { ...p, status: newStatus } : p
+      );
       setProducts(updated);
       setFilteredProducts(updated);
     }
@@ -80,11 +96,27 @@ function ProductPage() {
   };
 
   const handleSave = async (id) => {
+    const newStock = parseInt(editForm.stock);
+    const currentProduct = products.find(p => p.id === id);
+    let newStatus = currentProduct.status;
+    
+    // Only automatically change status in specific cases:
+    // 1. If stock becomes 0, mark as out-of-stock
+    // 2. If stock increases from 0 and current status is out-of-stock, mark as active
+    if (newStock === 0) {
+      newStatus = 'out-of-stock';
+    } else if (newStock > 0 && currentProduct.status === 'out-of-stock') {
+      // Only change to active if it was out-of-stock due to no stock
+      // If admin manually marked it out-of-stock, they need to manually change it back
+      newStatus = 'active';
+    }
+
     const { error } = await supabase
       .from("product")
       .update({
         price: editForm.price,
         stock: editForm.stock,
+        status: newStatus
       })
       .eq("id", id);
 
@@ -93,7 +125,7 @@ function ProductPage() {
       alert("Failed to update product.");
     } else {
       const updated = products.map((p) =>
-        p.id === id ? { ...p, price: editForm.price, stock: editForm.stock } : p
+        p.id === id ? { ...p, price: editForm.price, stock: editForm.stock, status: newStatus } : p
       );
       setProducts(updated);
       setFilteredProducts(updated);
@@ -147,6 +179,9 @@ function ProductPage() {
             <thead>
               <tr>
                 <th className="product-name-column">Product</th>
+                <th className="product-price-column">Price</th>
+                <th className="product-stock-column">Stock</th>
+                <th className="product-status-column">Status</th>
                 <th className="actions-column">Actions</th>
               </tr>
             </thead>
@@ -154,6 +189,13 @@ function ProductPage() {
               {filteredProducts.map((p) => (
                 <tr key={p.id}>
                   <td className="product-name-cell">{p.name}</td>
+                  <td className="product-price-cell">${p.price}</td>
+                  <td className="product-stock-cell">{p.stock}</td>
+                  <td className="product-status-cell">
+                    <span className={`status-badge status-${p.status}`}>
+                      {p.status || 'pending'}
+                    </span>
+                  </td>
                   <td>
                     <div className="action-buttons">
                       <button
@@ -163,10 +205,10 @@ function ProductPage() {
                         Edit
                       </button>
                       <button
-                        className="delete-btn"
-                        onClick={() => handleDelete(p.id)}
+                        className={`toggle-status-btn ${p.status === 'out-of-stock' ? 'activate-btn' : 'deactivate-btn'}`}
+                        onClick={() => handleToggleStatus(p.id, p.status)}
                       >
-                        Delete
+                        {p.status === 'out-of-stock' ? 'Mark Available' : 'Mark Out of Stock'}
                       </button>
                     </div>
                   </td>
@@ -174,7 +216,7 @@ function ProductPage() {
               ))}
               {filteredProducts.length === 0 && (
                 <tr>
-                  <td colSpan="2" className="no-products-message">No products match your search.</td>
+                  <td colSpan="5" className="no-products-message">No products match your search.</td>
                 </tr>
               )}
             </tbody>

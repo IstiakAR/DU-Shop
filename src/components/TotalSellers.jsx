@@ -48,17 +48,30 @@ function TotalSellers() {
     setLoading(false);
   };
 
-  // Delete seller
-  const deleteSeller = async (sellerId) => {
-    const confirmDelete = window.confirm("Are you sure you want to delete this seller?");
-    if (!confirmDelete) return;
+  // Ban/Unban seller
+  const toggleSellerBan = async (sellerId, currentLevel) => {
+    const isBanned = currentLevel === -1;
+    const action = isBanned ? "unban" : "ban";
+    const newLevel = isBanned ? 1 : -1;
+    
+    const confirmAction = window.confirm(`Are you sure you want to ${action} this seller?`);
+    if (!confirmAction) return;
 
-    const { error } = await supabase.from("seller").delete().eq("id", sellerId);
+    const { error } = await supabase
+      .from("seller")
+      .update({ level: newLevel })
+      .eq("id", sellerId);
+
     if (error) {
-      console.error("Error deleting seller:", error);
-      alert("Failed to delete seller");
+      console.error(`Error ${action}ning seller:`, error);
+      alert(`Failed to ${action} seller`);
     } else {
-      setRows(rows.filter((s) => s.id !== sellerId));
+      // Update the local state
+      setRows(rows.map(s => 
+        s.id === sellerId 
+          ? { ...s, level: newLevel }
+          : s
+      ));
     }
   };
 
@@ -108,18 +121,31 @@ function TotalSellers() {
           </thead>
           <tbody>
             {filtered.map((s) => (
-              <tr key={s.id}>
+              <tr key={s.id} style={{
+                opacity: s.level === -1 ? 0.6 : 1,
+                backgroundColor: s.level === -1 ? '#ffebee' : 'transparent'
+              }}>
                 <td style={td}>{s.name || "N/A"}</td>
                 <td style={td}>{s.email || "N/A"}</td>
                 <td style={td}>{s.rating}</td>
                 <td style={td}>{s.income}</td>
-                <td style={td}>{s.level}</td>
+                <td style={td}>
+                  <span style={{
+                    color: s.level === -1 ? '#d32f2f' : '#2e7d32',
+                    fontWeight: s.level === -1 ? 'bold' : 'normal'
+                  }}>
+                    {s.level === -1 ? 'BANNED' : s.level}
+                  </span>
+                </td>
                 <td style={td}>
                   <button
-                    className="seller-button"
-                    onClick={() => deleteSeller(s.id)}
+                    className={`seller-button ${s.level === -1 ? 'unban-btn' : 'ban-btn'}`}
+                    onClick={() => toggleSellerBan(s.id, s.level)}
+                    style={{
+                      backgroundColor: s.level === -1 ? '#2e7d32' : '#d32f2f',
+                    }}
                   >
-                    Delete
+                    {s.level === -1 ? 'Unban' : 'Ban'}
                   </button>
                 </td>
               </tr>

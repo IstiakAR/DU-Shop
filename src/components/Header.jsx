@@ -48,7 +48,8 @@ function Header({isLoggedIn=false}) {
             const { data, error } = await supabase
                 .from('product')
                 .select('*')
-                .eq('type', 'product');
+                .eq('type', 'product')
+                .eq('status', 'active'); // Only search active products
 
             if (!error && data) {
                 const searchResults = searchProducts(data, searchText);

@@ -20,7 +20,8 @@ function Shop() {
             let query = supabase
                 .from('product')
                 .select('*')
-                .eq('type', 'product');
+                .eq('type', 'product')
+                .eq('status', 'active');
                 
             if(subcategoryId) {
                 query = query.eq('sub_id', subcategoryId);
@@ -99,7 +100,8 @@ function Shop() {
                                 ? `https://ursffahpdyihjraagbuz.supabase.co/storage/v1/object/public/product-image/${images[item.id]}`
                                 : "/DU-Shop.png",
                             id: item.id,
-                            stock: item.stock
+                            stock: item.stock,
+                            seller_id: item.seller_id
                         }}
                     />
                 ))}

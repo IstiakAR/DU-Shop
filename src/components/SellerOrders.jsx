@@ -25,6 +25,19 @@ function SellerOrders() {
         return;
       }
 
+      // Check if seller is banned
+      const { data: sellerData } = await supabase
+        .from("seller")
+        .select("level")
+        .eq("id", user.id)
+        .single();
+        
+      if (sellerData?.level === -1) {
+        alert("Your seller account has been banned. You cannot access order management.");
+        setLoading(false);
+        return;
+      }
+
       const { data, error } = await supabase
         .from("order_item")
         .select(`

@@ -3,6 +3,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import supabase from "../supabase";
 import MessageBox from "./MessageBox";
+import { getUserID } from "../fetch";
+import { addToCart } from "./CartCondition";
 
 function Star({ filled, onClick, size = 22 }) {
   return (
@@ -35,7 +37,6 @@ function StarRow({ value = 0, onChange }) {
 
 export default function ItemDetails() {
   const { id: productID } = useParams();
-
   const [currentImage, setCurrentImage] = useState(0);
   const [tabContent, setTabContent] = useState("");
   const [product, setProduct] = useState(null);
@@ -44,31 +45,35 @@ export default function ItemDetails() {
   const [reviews, setReviews] = useState([]);
   const [user, setUser] = useState(null);
 
-  // form state for new review
   const [newReview, setNewReview] = useState("");
   const [rating, setRating] = useState(5);
   const [submittingReview, setSubmittingReview] = useState(false);
+  const [addingToCart, setAddingToCart] = useState(false);
 
   const storageBase =
     "https://ursffahpdyihjraagbuz.supabase.co/storage/v1/object/public/product-image";
 
   const getImageUrl = (filepath) => `${storageBase}/${filepath}`;
-
-  // Logged-in user
   useEffect(() => {
-    (async () => {
-      const { data } = await supabase.auth.getUser();
-      if (data?.user) setUser(data.user);
-    })();
+    const fetchUser = async () => {
+      try {
+        const { data: { user }, error } = await supabase.auth.getUser();
+        if (!error && user) {
+          setUser(user);
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+    fetchUser();
   }, []);
 
-  // Product (incl. seller_id)
   useEffect(() => {
     if (!productID) return;
     (async () => {
       const { data, error } = await supabase
         .from("product")
-        .select("id, name, price, stock, seller_id")
+        .select("id, name, price, stock, status, seller_id")
         .eq("id", productID)
         .single();
 
@@ -109,7 +114,7 @@ export default function ItemDetails() {
     })();
   }, [product?.id]);
 
-  // Reviews (join to user for name/email)
+  // Reviews
   useEffect(() => {
     if (!productID) return;
     (async () => {
@@ -166,7 +171,6 @@ export default function ItemDetails() {
       return;
     }
 
-    // optimistic UI: prepend new review
     setReviews((prev) => [
       {
         comment: newReview.trim(),
@@ -180,9 +184,29 @@ export default function ItemDetails() {
     setRating(5);
   }
 
+  async function handleAddToCart() {
+    if (!user) {
+      alert("You must be logged in to add items to cart.");
+      return;
+    }
+    setAddingToCart(true);
+    try {
+      await addToCart(productID, 1, 'plus');
+      alert("Item added to cart successfully!");
+    } catch (error) {
+      if (error.message.includes('your own product')) {
+        alert('You cannot add your own product to the cart.');
+      } else {
+        console.error('Error adding to cart:', error);
+        alert('Failed to add item to cart. Please try again.');
+      }
+    } finally {
+      setAddingToCart(false);
+    }
+  }
+
   return (
     <div className="container">
-      {/* Top area: images + info */}
       <div className="top-part">
         <div className="picture-container">
           <div className="picture-bar">
@@ -224,22 +248,79 @@ export default function ItemDetails() {
             <span className="price">Price: ₹{product?.price ?? "-"}</span>
             <span className="divider"> | </span>
             <span className="stock">Stock: {product?.stock ?? "-"}</span>
+            {product?.status && (
+              <>
+                <span className="divider"> | </span>
+                <span className={`status-indicator status-${product.status}`}>
+                  {product.status === 'out-of-stock' ? 'Out of Stock' : 
+                   product.status === 'pending' ? 'Pending Approval' : 
+                   'Available'}
+                </span>
+              </>
+            )}
           </div>
+
+          {/* Show warning if product is not active */}
+          {product?.status === 'pending' && (
+            <div style={{ 
+              backgroundColor: '#fff3cd', 
+              color: '#856404', 
+              padding: '10px', 
+              borderRadius: '5px', 
+              margin: '10px 0',
+              border: '1px solid #ffeaa7'
+            }}>
+              This product is pending approval and is not available for purchase.
+            </div>
+          )}
+          
+          {product?.status === 'out-of-stock' && (
+            <div style={{ 
+              backgroundColor: '#f8d7da', 
+              color: '#721c24', 
+              padding: '10px', 
+              borderRadius: '5px', 
+              margin: '10px 0',
+              border: '1px solid #f5c6cb'
+            }}>
+              This product is currently out of stock.
+            </div>
+          )}
 
           <p style={{ marginTop: 8 }}>{details?.description || "Description will be here soon."}</p>
 
-          {/* Message Seller */}
-          {product?.seller_id && user ? (
+          {/* Add to Cart Button */}
+          {user && product?.status === 'active' && product?.stock > 0 && (
+            <button 
+              className="add-cart-btn" 
+              onClick={handleAddToCart}
+              disabled={addingToCart || user.id === product?.seller_id}
+              style={{
+                backgroundColor: addingToCart || user.id === product?.seller_id ? '#ccc' : '#2d1972',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '6px',
+                fontSize: '16px',
+                fontWeight: '500',
+                cursor: addingToCart || user.id === product?.seller_id ? 'not-allowed' : 'pointer',
+                marginTop: '16px',
+                marginBottom: '16px',
+                opacity: addingToCart || user.id === product?.seller_id ? 0.6 : 1,
+                transition: 'all 0.2s'
+              }}
+            >
+              {addingToCart ? 'Adding...' : 'Add to Cart'}
+            </button>
+          )}
+
+          {product?.seller_id && user && user.id !== product.seller_id && (
             <MessageBox
               productId={product.id}
               sellerId={product.seller_id}
               user={user}
               buttonLabel="Message Seller"
             />
-          ) : (
-            <p style={{ marginTop: 10, color: "#666" }}>
-              {user ? "Seller not found for this product." : "Login to message the seller."}
-            </p>
           )}
         </div>
       </div>

@@ -20,7 +20,7 @@ function SellerManagement() {
             className="submit-btn"
             onClick={() => navigate("/admin/sellers/total")}
           >
-            Total Sellers
+            View Sellers
           </button>
         </div>
       </div>

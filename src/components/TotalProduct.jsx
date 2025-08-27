@@ -22,6 +22,7 @@ function TotalProduct() {
           name,
           price,
           stock,
+          status,
           type,
           created_at,
           seller_id
@@ -63,16 +64,48 @@ function TotalProduct() {
     }
   };
 
-  const deleteProduct = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this product?")) return;
+  const toggleProductStatus = async (id, currentStatus) => {
+    const newStatus = currentStatus === 'out-of-stock' ? 'active' : 'out-of-stock';
+    const action = newStatus === 'out-of-stock' ? 'mark as out of stock' : 'mark as available';
+    
+    if (!window.confirm(`Are you sure you want to ${action}?`)) return;
 
     try {
-      const { error } = await supabase.from("product").delete().eq("id", id);
+      const { error } = await supabase
+        .from("product")
+        .update({ status: newStatus })
+        .eq("id", id);
+        
       if (error) throw error;
 
-      setProducts(products.filter(p => p.id !== id));
+      setProducts(products.map(p => 
+        p.id === id ? { ...p, status: newStatus } : p
+      ));
     } catch (err) {
-      console.error("Error deleting product:", err);
+      console.error("Error updating product status:", err);
+      alert("Failed to update product status.");
+    }
+  };
+
+  const approveProduct = async (id) => {
+    if (!window.confirm("Are you sure you want to approve this product?")) return;
+
+    try {
+      const { error } = await supabase
+        .from("product")
+        .update({ status: 'active' })
+        .eq("id", id);
+        
+      if (error) throw error;
+
+      setProducts(products.map(p => 
+        p.id === id ? { ...p, status: 'active' } : p
+      ));
+      
+      alert("Product approved successfully!");
+    } catch (err) {
+      console.error("Error approving product:", err);
+      alert("Failed to approve product.");
     }
   };
 
@@ -101,6 +134,7 @@ function TotalProduct() {
             <th>Name</th>
             <th>Price</th>
             <th>Stock</th>
+            <th>Status</th>
             <th>Type</th>
             <th>Seller</th>
             <th>Created</th>
@@ -114,17 +148,36 @@ function TotalProduct() {
                 <td>{p.name}</td>
                 <td>${p.price}</td>
                 <td>{p.stock}</td>
+                <td>
+                  <span className={`status-badge status-${p.status || 'pending'}`}>
+                    {p.status || 'pending'}
+                  </span>
+                </td>
                 <td>{p.type}</td>
                 <td>{p.sellerName}</td>
                 <td>{new Date(p.created_at).toLocaleDateString()}</td>
                 <td>
-                  <button onClick={() => deleteProduct(p.id)}>Delete</button>
+                  {(p.status === 'pending') ? (
+                    <button 
+                      className="approve-btn"
+                      onClick={() => approveProduct(p.id)}
+                    >
+                      Approve
+                    </button>
+                  ) : (
+                    <button 
+                      className={`${(p.status === 'out-of-stock') ? 'activate-btn' : 'deactivate-btn'}`}
+                      onClick={() => toggleProductStatus(p.id, p.status)}
+                    >
+                      {p.status === 'out-of-stock' ? 'Mark Available' : 'Mark Out of Stock'}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))
           ) : (
             <tr>
-              <td colSpan="7" style={{ textAlign: "center" }}>
+              <td colSpan="8" style={{ textAlign: "center" }}>
                 No products found
               </td>
             </tr>

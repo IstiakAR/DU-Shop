@@ -113,7 +113,8 @@ export const createProduct = async (productData, productDesc, selectedSubcategor
                 stock: parseInt(productData.stock), 
                 sub_id: selectedSubcategory,
                 type: 'product',
-                seller_id: userId
+                seller_id: userId,
+                status: 'pending' // Set default status to pending for new products
             }
         ])
         .select();
@@ -384,6 +385,19 @@ export const useProductForm = () => {
             }
             
             const userId = await getUserID();
+            
+            // Check if seller is banned
+            const { data: sellerData } = await supabase
+                .from("seller")
+                .select("level")
+                .eq("id", userId)
+                .single();
+                
+            if (sellerData?.level === -1) {
+                alert('Your seller account has been banned. You cannot create or update products.');
+                setDisable(false);
+                return;
+            }
             
             if (isUpdateMode) {
                 await updateProduct(productId, productData, productDesc, selectedSubcategory, imageFiles, imagesToDelete, existingImages, userId);

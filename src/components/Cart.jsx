@@ -55,8 +55,9 @@ function Cart({handleCart}){
         const productIds = cartItemsData.map(item => item.prod_id);
         const { data: productsData } = await supabase
             .from('product')
-            .select('id, name, price')
-            .in('id', productIds);
+            .select('id, name, price, status')
+            .in('id', productIds)
+            .eq('status', 'active'); // Only get active products
 
         const { data: imagesData } = await supabase
             .from('product_image')

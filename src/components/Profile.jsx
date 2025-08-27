@@ -75,17 +75,15 @@ function Profile() {
                   </span>
                  </div>
 
-                {isSeller && (
-                    <>
-                        <div className="profile-divider" />
-                        <div className="profile-link-row" onClick={() => navigate('/seller')}>
-                            <span>Seller dashboard</span>
-                            <span className="profile-arrow">
-                                <img src={rightArrow} />
-                            </span>
-                        </div>
-                    </>
-                )}
+                <>
+                    <div className="profile-divider" />
+                    <div className="profile-link-row" onClick={() => navigate('/seller')}>
+                        <span>Seller dashboard</span>
+                        <span className="profile-arrow">
+                            <img src={rightArrow} />
+                        </span>
+                    </div>
+                </>
 
                 {isAdmin && (
                     <>

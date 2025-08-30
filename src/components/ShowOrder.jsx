@@ -1,192 +1,252 @@
-import { useEffect, useState } from "react";
-import supabase from "../supabase";
-import "../styles/Admin.css";
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import supabase from '../supabase';
+import '../styles/Admin.css';
 
-function TotalOrders() {
+function ShowOrder() {
+  const navigate = useNavigate();
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState("");
-  const [user, setUser] = useState(null);
+  const [activeOrder, setActiveOrder] = useState(null);
 
   useEffect(() => {
-    fetchOrders();
+    fetchUserOrders();
   }, []);
 
-  const fetchOrders = async () => {
-    setLoading(true);
+  const fetchUserOrders = async () => {
     try {
-      // Get logged-in user
       const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData?.user) {
-        console.error("Failed to get user:", userError);
-        setLoading(false);
-        return;
-      }
-      const userId = userData.user.id;
-      setUser(userData.user);
-
-      // Step 1: Fetch orders
-      const { data: ordersData, error: ordersError } = await supabase
-        .from("order")
-        .select("id, created_at, pay_id, delivery:delivery(*)")
-        .eq("user_id", userId);
-
-      if (ordersError) throw ordersError;
-
-      if (!ordersData || ordersData.length === 0) {
-        setOrders([]);
-        setLoading(false);
+      if (userError) throw userError;
+      
+      if (!userData.user) {
+        navigate('/login');
         return;
       }
 
-      // Step 2: Fetch payments
-      const payIds = ordersData.map((o) => o.pay_id);
-      const { data: paymentsData } = await supabase
-        .from("payment")
-        .select("pay_id, status")
-        .in("pay_id", payIds);
+      // Get orders with comprehensive details using the view
+      const { data, error } = await supabase
+        .from('order_details')
+        .select('*')
+        .eq('customer_email', userData.user.email)
+        .order('created_at', { ascending: false });
 
-      // Step 3: Fetch order items with product names
-      const orderIds = ordersData.map((o) => o.id);
-      const { data: itemsData } = await supabase
-        .from("order_item")
-        .select("order_id, quantity, price_at_purchase, product!inner(name)")
-        .in("order_id", orderIds);
-
-      // Step 4: Combine data
-      const ordersWithItems = ordersData.map((order) => {
-        const payment = paymentsData.find((p) => p.pay_id === order.pay_id);
-        const items = itemsData.filter((i) => i.order_id === order.id);
-        const totalPrice = items.reduce((sum, i) => sum + i.quantity * i.price_at_purchase, 0);
-        const productNames = items.map(i => `${i.product.name} × ${i.quantity}`);
-
-        const delivery = order.delivery && order.delivery.length > 0 ? order.delivery[0] : null;
-
-        return {
-          ...order,
-          payment_status: payment?.status || "N/A",
-          total_price: totalPrice,
-          items_count: items.length,
-          product_names: productNames,
-          delivery_status: delivery?.delivery_status || "Pending",
-          delivery_id: delivery?.delivery_id,
-        };
-      });
-
-      setOrders(ordersWithItems);
-    } catch (err) {
-      console.error("Error fetching orders:", err);
-      setOrders([]);
+      if (error) throw error;
+      setOrders(data || []);
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+      alert('Failed to load orders');
     } finally {
       setLoading(false);
     }
   };
 
-  const cancelOrder = async (orderId, payId) => {
-    if (!window.confirm("Are you sure you want to cancel this order?")) return;
+  const handleCancelOrder = async (orderId) => {
+    if (!confirm('Are you sure you want to cancel this order? This will automatically create a refund request.')) return;
 
     try {
-      const { error } = await supabase
-        .from("payment")
-        .update({ status: "refunded" })
-        .eq("pay_id", payId);
+      const { data: userData } = await supabase.auth.getUser();
+      
+      // Cancel the order
+      const { data, error } = await supabase.rpc('cancel_customer_order', {
+        p_order_id: orderId,
+        p_user_id: userData.user.id
+      });
 
       if (error) throw error;
 
-      fetchOrders();
-    } catch (err) {
-      console.error("Error canceling order:", err);
+      if (data.success) {
+        // If order cancellation is successful, automatically create a refund request
+        const { data: refundData, error: refundError } = await supabase.rpc('create_refund_request', {
+          p_order_id: orderId,
+          p_user_id: userData.user.id
+        });
+
+        if (refundError) {
+          console.error('Error creating refund request:', refundError);
+          alert('Order cancelled successfully, but failed to create refund request. Please contact support.');
+        } else if (refundData.success) {
+          alert('Order cancelled successfully and refund request created. You will be notified once the refund is processed.');
+        } else {
+          alert('Order cancelled successfully, but refund request failed: ' + (refundData.error || 'Unknown error'));
+        }
+        
+        fetchUserOrders(); // Refresh the orders
+      } else {
+        alert(data.error || 'Failed to cancel order');
+      }
+    } catch (error) {
+      console.error('Error cancelling order:', error);
+      alert('Failed to cancel order');
     }
   };
 
-  const markReceived = async (deliveryId) => {
-    try {
-      const { error } = await supabase
-        .from("delivery")
-        .update({ delivery_status: "Delivered" })
-        .eq("delivery_id", deliveryId);
+  // Removed handleRequestRefund function since refunds now happen automatically when cancelling orders
 
-      if (error) throw error;
-
-      fetchOrders(); // refresh after update
-    } catch (err) {
-      console.error("Error updating delivery:", err);
+  const getOrderStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return '#f39c12';
+      case 'confirmed': return '#3498db';
+      case 'partially_delivered': return '#e67e22';
+      case 'delivered': return '#27ae60';
+      case 'cancelled': return '#e74c3c';
+      case 'refunded': return '#9b59b6';
+      default: return '#95a5a6';
     }
   };
 
-  const filteredOrders = orders.filter(
-    (o) =>
-      o.id.toLowerCase().includes(search.toLowerCase()) ||
-      o.payment_status.toLowerCase().includes(search.toLowerCase()) ||
-      o.product_names.join(" ").toLowerCase().includes(search.toLowerCase())
-  );
+  const getDeliveryStatusColor = (status) => {
+    switch (status) {
+      case 'pending': return '#f39c12';
+      case 'on_the_way': return '#3498db';
+      case 'delivered': return '#27ae60';
+      case 'cancelled': return '#e74c3c';
+      default: return '#95a5a6';
+    }
+  };
 
-  if (loading) return <p>Loading orders...</p>;
+  const canCancelOrder = (order) => {
+    return order.order_status === 'pending' || 
+           (order.order_status === 'confirmed' && order.shipped_items === 0);
+  };
+
+  // Remove the separate refund function since refunds should only happen through cancellation
+  // const canRequestRefund = (order) => {
+  //   return order.order_status === 'delivered' || order.order_status === 'partially_delivered';
+  // };
+
+  if (loading) {
+    return <div className="loading">Loading orders...</div>;
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div className="seller-container">
+        <div className="admin-title">
+          <h2>No Orders Found</h2>
+          <p>You haven't placed any orders yet.</p>
+          <button onClick={() => navigate('/')} className="seller-button">
+            Start Shopping
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="seller-container">
-      <h2 className="admin-title">My Orders</h2>
-      <input
-        type="text"
-        placeholder="Search by Order ID, Payment Status, or Product Name"
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        className="search-input"
-      />
-<table className="order-table">
-  <thead>
-    <tr>
-      <th>Order ID</th>
-      <th>Payment Status</th>
-      <th>Items Count</th>
-      <th>Products</th>
-      <th>Total Price</th>
-      <th>Date</th>
-      <th>Delivery Status</th>  {/* New column added */}
-      <th>Action</th>
-    </tr>
-  </thead>
-  <tbody>
-    {filteredOrders.length > 0 ? (
-      filteredOrders.map((o) => (
-        <tr key={o.id}>
-          <td>{o.id}</td>
-          <td>{o.payment_status}</td>
-          <td>{o.items_count}</td>
-          <td>
-            {o.product_names.map((name, idx) => (
-              <div key={idx}>{name}</div>
-            ))}
-          </td>
-          <td>৳{o.total_price}</td>
-          <td>{new Date(o.created_at).toLocaleDateString()}</td>
-          <td>{o.delivery_status}</td> {/* Show delivery status here */}
-          <td>
-            {o.delivery_status === "On the Way" && (
-              <button
-                className="receive-btn"
-                onClick={() => markReceived(o.delivery_id)}
-                style={{ marginRight: "10px" }}
-                disabled={o.delivery_status === "Delivered"}
-              >
-                Received
-              </button>
-            )}
-          </td>
-        </tr>
-      ))
-    ) : (
-      <tr>
-        <td colSpan="8" style={{ textAlign: "center" }}>
-          No orders found
-        </td>
-      </tr>
-    )}
-  </tbody>
-</table>
+      <div className="orders-header">
+        <h2 className="admin-title">My Orders</h2>
+        <button onClick={() => navigate('/')} className="seller-button">
+          Back to Shop
+        </button>
+      </div>
 
+      <table className="order-table">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Date</th>
+            <th>Items</th>
+            <th>Total Amount</th>
+            <th>Order Status</th>
+            <th>Payment Status</th>
+            <th>Progress</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {orders.map(order => (
+            <>
+              <tr key={order.order_id}>
+                <td>#{order.order_id.slice(-8).toUpperCase()}</td>
+                <td>{new Date(order.created_at).toLocaleDateString()}</td>
+                <td>{order.total_items} items</td>
+                <td>{order.total_amount} TK</td>
+                <td>
+                  <span 
+                    className={`status-badge status-${order.order_status.replace('_', '-')}`}
+                  >
+                    {order.order_status.replace('_', ' ')}
+                  </span>
+                </td>
+                <td>
+                  <span 
+                    className={`status-badge status-${order.payment_status}`}
+                  >
+                    {order.payment_status}
+                  </span>
+                </td>
+                <td>{order.delivered_items}/{order.total_items} delivered</td>
+                <td>
+                  {canCancelOrder(order) && (
+                    <button 
+                      onClick={() => handleCancelOrder(order.order_id)}
+                      className="cancel-order-btn"
+                      style={{ marginRight: '5px' }}
+                    >
+                      Cancel & Refund
+                    </button>
+                  )}
+                  <button 
+                    onClick={() => setActiveOrder(activeOrder === order.order_id ? null : order.order_id)}
+                    className="seller-button"
+                  >
+                    {activeOrder === order.order_id ? 'Hide' : 'Details'}
+                  </button>
+                </td>
+              </tr>
+              {activeOrder === order.order_id && (
+                <tr>
+                  <td colSpan="8">
+                    <div className="order-details-expanded">
+                      <h4>Order Items</h4>
+                      <table className="order-table" style={{ marginTop: '10px', width: '100%' }}>
+                        <thead>
+                          <tr>
+                            <th>Product</th>
+                            <th>Seller</th>
+                            <th>Quantity</th>
+                            <th>Price</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Delivered Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {order.items.map((item, index) => (
+                            <tr key={index}>
+                              <td>{item.product_name}</td>
+                              <td>{item.seller_name}</td>
+                              <td>{item.quantity}</td>
+                              <td>{item.price} TK</td>
+                              <td>{item.quantity * item.price} TK</td>
+                              <td>
+                                <span 
+                                  className={`status-badge status-${item.delivery_status.replace('_', '-')}`}
+                                >
+                                  {item.delivery_status.replace('_', ' ')}
+                                </span>
+                              </td>
+                              <td>
+                                {item.delivered_at 
+                                  ? new Date(item.delivered_at).toLocaleDateString()
+                                  : '-'
+                                }
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }
 
-export default TotalOrders;
+export default ShowOrder;

@@ -94,3 +94,17 @@
 .add-icon{
     cursor: pointer;
 }
+
+@media (width<1000px) {
+    .logo-text{
+        display: none;
+    }
+    .search-product{
+        width: 300px;
+    }
+}
+@media (width < 600px) {
+    .search-product{
+        width: 100px;
+    }
+}

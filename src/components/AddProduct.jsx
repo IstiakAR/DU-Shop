@@ -1,4 +1,3 @@
-import React from 'react';
 import '../styles/ItemDetails.css';
 import '../styles/AddProduct.css';
 import ReactMarkdown from 'react-markdown';
@@ -80,16 +79,6 @@ function AddProduct() {
         );
     };
 
-    if (loading) {
-        return (
-            <div className='add-product-container'>
-                <div style={{ textAlign: 'center', padding: '50px' }}>
-                    <h2>Loading product data...</h2>
-                </div>
-            </div>
-        );
-    }
-
     return (
         <div className='add-product-container'>
             <div className='add-product-top'>
@@ -123,8 +112,8 @@ function AddProduct() {
                             />
                             <input 
                                 type="number" 
-                                placeholder="Price" 
-                                className='price' 
+                                placeholder="Price"
+                                className='price'
                                 required 
                                 value={productData.price}
                                 onChange={(e) => setProductData({ ...productData, price: e.target.value })} 
@@ -132,7 +121,7 @@ function AddProduct() {
                             <input 
                                 type="number" 
                                 placeholder="Stock" 
-                                className='stock' 
+                                className='stock'
                                 required 
                                 value={productData.stock}
                                 onChange={(e) => setProductData({ ...productData, stock: e.target.value })} 
@@ -195,7 +184,7 @@ function AddProduct() {
                 <div className='details-content'>
                     {mode === 'edit' ? (
                         currentContent === 'details' ? (
-                            <textarea 
+                            <textarea className='details-text'
                                 name="details" 
                                 placeholder="Product Details" 
                                 value={productDesc.details}
@@ -203,7 +192,7 @@ function AddProduct() {
                                 required
                             />
                         ) : (
-                            <textarea 
+                            <textarea className='details-text'
                                 name="specs" 
                                 placeholder="Product Specs" 
                                 value={productDesc.specs}

@@ -166,7 +166,7 @@ function Seller() {
             <span className="stat-value">{stats.totalSales}</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">Total Amount</span>
+            <span className="stat-label">Total Earning</span>
             <span className="stat-value">${stats.totalAmount}</span>
           </div>
         </div>

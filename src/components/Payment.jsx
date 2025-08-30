@@ -129,16 +129,13 @@ function Payment() {
 
       if (paymentError) throw paymentError;
 
-      const { error: deliveryError } = await supabase
-        .from("delivery")
-        .insert({
-          order_id: orderId,
-          address: address,
-          phone: phone,
-          delivery_status: "pending"
-        });
+      // Update order status to confirmed
+      const { error: orderError } = await supabase
+        .from("order")
+        .update({ status: "confirmed" })
+        .eq("id", orderId);
 
-      if (deliveryError) throw deliveryError;
+      if (orderError) throw orderError;
 
       await clearCart();
 

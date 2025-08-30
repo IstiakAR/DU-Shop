@@ -25,28 +25,22 @@ function Order() {
       }
 
       // Call server-side function to create order with atomic stock reservation
-      const { data, error } = await supabase.rpc('create_order_with_reservation', {
-        user_id_param: userId,
-        cart_items: cartItems.map(item => ({
-          id: item.id,
+      const { data, error } = await supabase.rpc('create_order_with_items', {
+        p_user_id: userId,
+        p_cart_items: cartItems.map(item => ({
+          prod_id: item.id,
           quantity: item.quantity,
-          price: item.price,
-          name: item.name
-        }))
+          price: item.price
+        })),
+        p_address: '',  // Will be filled in payment step
+        p_phone: ''     // Will be filled in payment step
       });
 
       if (error) throw error;
 
       // Check if stock reservation was successful
       if (!data.success) {
-        if (data.out_of_stock && data.out_of_stock.length > 0) {
-          const outOfStockMessages = data.out_of_stock.map(item => 
-            `${item.name}: requested ${item.requested}, available ${item.available}`
-          );
-          alert(`Insufficient stock:\n${outOfStockMessages.join('\n')}`);
-        } else {
-          alert(data.error || "Failed to process order");
-        }
+        alert(data.error || "Failed to process order");
         setLoading(false);
         return;
       }

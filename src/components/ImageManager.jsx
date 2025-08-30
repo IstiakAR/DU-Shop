@@ -161,7 +161,7 @@ const ImageManager = ({
                 </div>
             </div>
             <div className='picture-area'>
-                <img src={currentImage} className='main-picture' alt="Main product view" />
+                <img src={currentImage} className='main-picture'/>
             </div>
         </div>
     );

@@ -106,7 +106,7 @@ function ShowOrder() {
 
   const canCancelOrder = (order) => {
     return order.order_status === 'pending' || 
-           (order.order_status === 'confirmed' && order.shipped_items === 0);
+           (order.order_status === 'confirmed' && (order.shipped_items === 0 || order.shipped_items === undefined));
   };
 
   // Remove the separate refund function since refunds should only happen through cancellation
@@ -184,7 +184,7 @@ function ShowOrder() {
                       className="cancel-order-btn"
                       style={{ marginRight: '5px' }}
                     >
-                      Cancel & Refund
+                      Cancel
                     </button>
                   )}
                   <button 

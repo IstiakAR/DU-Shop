@@ -4,6 +4,7 @@ import './styles/App.css'
 import Header from './components/Header';
 import AuthListener from './components/AuthListener';
 import supabase from './supabase';
+import RouteRefresh from "./RouteRefresh";
 
 function App({children}) {
 
@@ -27,9 +28,11 @@ function App({children}) {
 
   return (
     <>
+    <RouteRefresh>
       <AuthListener />
       <Header isLoggedIn={isLoggedIn} />
       {children}
+    </RouteRefresh>
     </>
   )
 }

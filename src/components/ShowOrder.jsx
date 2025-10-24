@@ -199,8 +199,7 @@ function ShowOrder() {
                 <tr>
                   <td colSpan="8">
                     <div className="order-details-expanded">
-                      <h4>Order Items</h4>
-                      <table className="order-table" style={{ marginTop: '10px', width: '100%' }}>
+                      <table className="order-table" style={{ marginTop: '4px', width: '100%' }}>
                         <thead>
                           <tr>
                             <th>Product</th>

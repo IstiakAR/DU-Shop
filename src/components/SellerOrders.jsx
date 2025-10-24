@@ -241,10 +241,10 @@ function SellerOrders() {
                     </button>
                   )}
                   {item.delivery_status === 'delivered' && (
-                    <span className="approve-btn" style={{ cursor: 'default' }}>✓ Completed</span>
+                    <span className="approve-btn" style={{ cursor: 'default' }}>Completed</span>
                   )}
                   {item.delivery_status === 'cancelled' && (
-                    <span className="cancel-order-btn" style={{ cursor: 'default' }}>✗ Cancelled</span>
+                    <span className="cancel-order-btn" style={{ cursor: 'default' }}>Cancelled</span>
                   )}
                 </td>
               </tr>
